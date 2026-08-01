@@ -1,0 +1,152 @@
+{
+  "light": {
+    "colors": {
+      "primary": "#F47820",
+      "primaryHover": "#C45A0A",
+      "primaryPressed": "#9C480A",
+      "primaryDisabled": "#4DF47820",
+      "onPrimary": "#FFFFFF",
+
+      "secondary": "#0969DA",
+      "secondaryHover": "#0550AE",
+      "secondaryPressed": "#033D8B",
+      "secondaryDisabled": "#4D0969DA",
+      "onSecondary": "#FFFFFF",
+
+      "background": "#FFFFFF",
+      "surfaceLow": "#F6F8FA",
+      "surfaceMid": "#EAEEF2",
+      "surfaceHigh": "#D0D7DE",
+      "onSurface": "#1F2328",
+      "onSurfaceVariant": "#656D76",
+
+      "textPrimary": "#1F2328",
+      "textSecondary": "#656D76",
+      "textDisabled": "#8C959F",
+      "textInverse": "#FFFFFF",
+
+      "success": "#F47820",
+      "onSuccess": "#FFFFFF",
+      "warning": "#9A6700",
+      "onWarning": "#FFFFFF",
+      "error": "#D1242F",
+      "onError": "#FFFFFF",
+      "info": "#0969DA",
+      "onInfo": "#FFFFFF",
+
+      "disabled": "#EAEEF2",
+      "onDisabled": "#8C959F",
+      "focus": "#0969DA",
+      "divider": "#D8DEE4",
+      "border": "#D0D7DE"
+    },
+    "typography": {
+      "fonts": {
+        "fontFamily": "Inter",
+        "fontFamilyMono": "JetBrains Mono"
+      },
+      "sizes": {
+        "caption": 11,
+        "label": 12,
+        "body": 14,
+        "bodyLg": 16,
+        "h6": 16,
+        "h5": 18,
+        "h4": 22,
+        "h3": 26,
+        "h2": 30,
+        "h1": 36
+      }
+    },
+    "spacing": {
+      "xSmall": 4,
+      "small": 8,
+      "smallMedium": 16,
+      "medium": 24,
+      "mediumLarge": 32,
+      "large": 48,
+      "extraLarge": 64
+    },
+    "radius": {
+      "small": 4,
+      "medium": 6,
+      "large": 8,
+      "extraLarge": 9999
+    }
+  },
+  "dark": {
+    "colors": {
+      "primary": "#F47820",
+      "primaryHover": "#D96A10",
+      "primaryPressed": "#C45A0A",
+      "primaryDisabled": "#4DF47820",
+      "onPrimary": "#FFFFFF",
+
+      "secondary": "#58A6FF",
+      "secondaryHover": "#79C0FF",
+      "secondaryPressed": "#388BFD",
+      "secondaryDisabled": "#4D58A6FF",
+      "onSecondary": "#FFFFFF",
+
+      "background": "#0D1117",
+      "surfaceLow": "#161B22",
+      "surfaceMid": "#1C2128",
+      "surfaceHigh": "#21262D",
+      "onSurface": "#E6EDF3",
+      "onSurfaceVariant": "#8B949E",
+
+      "textPrimary": "#E6EDF3",
+      "textSecondary": "#8B949E",
+      "textDisabled": "#6E7681",
+      "textInverse": "#0D1117",
+
+      "success": "#F47820",
+      "onSuccess": "#FFFFFF",
+      "warning": "#D29922",
+      "onWarning": "#0D1117",
+      "error": "#F85149",
+      "onError": "#FFFFFF",
+      "info": "#58A6FF",
+      "onInfo": "#FFFFFF",
+
+      "disabled": "#21262D",
+      "onDisabled": "#6E7681",
+      "focus": "#58A6FF",
+      "divider": "#21262D",
+      "border": "#30363D"
+    },
+    "typography": {
+      "fonts": {
+        "fontFamily": "Inter",
+        "fontFamilyMono": "JetBrains Mono"
+      },
+      "sizes": {
+        "caption": 11,
+        "label": 12,
+        "body": 14,
+        "bodyLg": 16,
+        "h6": 16,
+        "h5": 18,
+        "h4": 22,
+        "h3": 26,
+        "h2": 30,
+        "h1": 36
+      }
+    },
+    "spacing": {
+      "xSmall": 4,
+      "small": 8,
+      "smallMedium": 16,
+      "medium": 24,
+      "mediumLarge": 32,
+      "large": 48,
+      "extraLarge": 64
+    },
+    "radius": {
+      "small": 4,
+      "medium": 6,
+      "large": 8,
+      "extraLarge": 9999
+    }
+  }
+}
