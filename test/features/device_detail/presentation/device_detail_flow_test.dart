@@ -10,11 +10,13 @@ import 'package:meca_lab/core/error/failures.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_mobile_view.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_web_view.dart';
+import 'package:meca_lab/features/device_detail/presentation/widgets/recent_alerts_placeholder.dart';
 import 'package:meca_lab/features/device_detail/presentation/widgets/sensor_detail_card.dart';
 import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
 import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -25,6 +27,13 @@ class MockSensorHistoryRepository extends Mock
     implements SensorHistoryRepository {}
 
 void main() {
+  // SensorHistoryDetailChart calls getHistoryForRange(sensorId, range) —
+  // mocktail's any() needs a fallback value registered for any type beyond
+  // the built-in ones.
+  setUpAll(() {
+    registerFallbackValue(SensorHistoryRange.day);
+  });
+
   late MockDeviceRepository deviceRepository;
   late MockSensorHistoryRepository historyRepository;
 
@@ -71,6 +80,9 @@ void main() {
     when(
       () => historyRepository.watchSensorHistory(any()),
     ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => historyRepository.getHistoryForRange(any(), any()),
+    ).thenAnswer((_) async => const Right([]));
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );
@@ -162,6 +174,15 @@ void main() {
 
     expect(find.text('Compresor Norte'), findsOneWidget);
     expect(find.byType(SensorDetailCard), findsNWidgets(2));
+
+    // Each SensorDetailCard is tall enough now (full chart with axes) that
+    // RecentAlertsPlaceholder sits past the ListView's default viewport +
+    // cache extent — it exists in the list but isn't mounted until scrolled
+    // into view.
+    await tester.scrollUntilVisible(
+      find.byType(RecentAlertsPlaceholder),
+      300,
+    );
     expect(find.text('Alertas — próximamente'), findsOneWidget);
   });
 

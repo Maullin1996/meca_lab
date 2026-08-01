@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/device.dart';
 import '../../domain/entities/sensor.dart';
+import '../../domain/entities/sensor_history_range.dart';
 import '../../domain/entities/site.dart';
 import '../../domain/entities/tenant.dart';
 
@@ -92,6 +93,52 @@ class MockDeviceDataSource {
 
   List<SensorHistoryPoint> _historyFor(String sensorId) =>
       List.unmodifiable(_historyBySensorId[sensorId] ?? const []);
+
+  /// Synthetic historical points for a coarser [range] (day/week/month) —
+  /// unrelated to the live tick buffer behind [historyStream]. Returns an
+  /// empty list for an unknown [sensorId]. Seeded per `(sensorId, range)` so
+  /// repeated calls (e.g. switching the range picker back and forth) return
+  /// the same series instead of a fresh random walk each time.
+  List<SensorHistoryPoint> generateHistoryForRange(
+    String sensorId,
+    SensorHistoryRange range,
+  ) {
+    final sensor = _findSensor(sensorId);
+    if (sensor == null) return const [];
+
+    final (pointCount, step) = switch (range) {
+      SensorHistoryRange.day => (24, const Duration(hours: 1)),
+      SensorHistoryRange.week => (7, const Duration(days: 1)),
+      SensorHistoryRange.month => (30, const Duration(days: 1)),
+    };
+
+    final now = DateTime.now();
+    final walkRandom = Random(sensorId.hashCode ^ range.index);
+    final safeSpan = sensor.safeMax - sensor.safeMin;
+    var value = sensor.currentValue;
+
+    final points = <SensorHistoryPoint>[];
+    for (var i = 0; i < pointCount; i++) {
+      final noise = (walkRandom.nextDouble() * 2 - 1) * safeSpan * 0.05;
+      value = (value + noise).clamp(sensor.safeMin, sensor.safeMax);
+      points.add(
+        SensorHistoryPoint(
+          timestamp: now.subtract(step * (pointCount - 1 - i)),
+          value: value,
+        ),
+      );
+    }
+    return List.unmodifiable(points);
+  }
+
+  Sensor? _findSensor(String sensorId) {
+    for (final sensors in _sensorsByDeviceId.values) {
+      for (final sensor in sensors) {
+        if (sensor.id == sensorId) return sensor;
+      }
+    }
+    return null;
+  }
 
   void _seedHistory() {
     final now = DateTime.now();

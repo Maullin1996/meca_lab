@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/core/error/failures.dart';
 import 'package:meca_lab/shared/data/datasources/mock_device_data_source.dart';
 import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
 import 'package:meca_lab/shared/domain/entities/sensor_reading.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -57,5 +58,47 @@ void main() {
       repository.watchSensorHistory('sensor-1'),
       emits(isA<Left<Failure, List<SensorReading>>>()),
     );
+  });
+
+  group('getHistoryForRange', () {
+    test('envuelve los puntos generados por el data source en Right', () async {
+      when(
+        () => dataSource.generateHistoryForRange('sensor-1', SensorHistoryRange.week),
+      ).thenReturn(history);
+
+      final result = await repository.getHistoryForRange(
+        'sensor-1',
+        SensorHistoryRange.week,
+      );
+
+      expect(
+        result,
+        isA<Right<Failure, List<SensorReading>>>().having(
+          (right) => right.value,
+          'value',
+          [
+            isA<SensorReading>()
+                .having((r) => r.sensorId, 'sensorId', 'sensor-1')
+                .having((r) => r.value, 'value', history[0].value),
+            isA<SensorReading>()
+                .having((r) => r.sensorId, 'sensorId', 'sensor-1')
+                .having((r) => r.value, 'value', history[1].value),
+          ],
+        ),
+      );
+    });
+
+    test('envuelve una excepción del data source en Left(UnexpectedFailure)', () async {
+      when(
+        () => dataSource.generateHistoryForRange('sensor-1', SensorHistoryRange.day),
+      ).thenThrow(Exception('boom'));
+
+      final result = await repository.getHistoryForRange(
+        'sensor-1',
+        SensorHistoryRange.day,
+      );
+
+      expect(result, isA<Left<Failure, List<SensorReading>>>());
+    });
   });
 }

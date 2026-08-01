@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/error/failures.dart';
 import '../datasources/mock_device_data_source.dart';
+import '../../domain/entities/sensor_history_range.dart';
 import '../../domain/entities/sensor_reading.dart';
 import '../../domain/repositories/sensor_history_repository.dart';
 
@@ -30,6 +31,26 @@ class SensorHistoryRepositoryImpl implements SensorHistoryRepository {
       }
     } catch (e) {
       yield Left(UnexpectedFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<SensorReading>>> getHistoryForRange(
+    String sensorId,
+    SensorHistoryRange range,
+  ) async {
+    try {
+      final points = dataSource.generateHistoryForRange(sensorId, range);
+      return Right([
+        for (final point in points)
+          SensorReading(
+            sensorId: sensorId,
+            timestamp: point.timestamp,
+            value: point.value,
+          ),
+      ]);
+    } catch (e) {
+      return Left(UnexpectedFailure(e.toString()));
     }
   }
 }

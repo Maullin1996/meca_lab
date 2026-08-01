@@ -34,7 +34,7 @@ class DeviceDetailHeader extends StatelessWidget {
     final tokens = AppTokens.of(context);
 
     return AppCard(
-      padding: EdgeInsets.all(tokens.spacing.small),
+      padding: EdgeInsets.all(tokens.spacing.smallMedium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,12 +43,12 @@ class DeviceDetailHeader extends StatelessWidget {
               DeviceStatusBadge(status: deviceDetail.device.status),
               SizedBox(width: tokens.spacing.small),
               Expanded(
-                child: AppText.label(_typeLabel, color: colors.textSecondary),
+                child: AppText.bodyLg(_typeLabel, color: colors.textSecondary),
               ),
             ],
           ),
           SizedBox(height: tokens.spacing.xSmall),
-          AppText.caption(
+          AppText.body(
             'Última conexión: ${_formatLastConnection(deviceDetail.device.lastConnection)}',
             color: colors.textSecondary,
           ),

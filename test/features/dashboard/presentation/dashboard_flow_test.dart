@@ -18,6 +18,7 @@ import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
 import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
 import 'package:meca_lab/shared/domain/entities/sensor_reading.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
@@ -29,6 +30,13 @@ class MockSensorHistoryRepository extends Mock
     implements SensorHistoryRepository {}
 
 void main() {
+  // device_detail's SensorHistoryDetailChart (reached by tapping a card)
+  // calls getHistoryForRange(sensorId, range) — mocktail's any() needs a
+  // fallback value registered for any type beyond the built-in ones.
+  setUpAll(() {
+    registerFallbackValue(SensorHistoryRange.day);
+  });
+
   late MockDeviceRepository repository;
   late MockSensorHistoryRepository historyRepository;
 
@@ -67,6 +75,9 @@ void main() {
     when(
       () => historyRepository.watchSensorHistory(any()),
     ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => historyRepository.getHistoryForRange(any(), any()),
+    ).thenAnswer((_) async => const Right([]));
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );

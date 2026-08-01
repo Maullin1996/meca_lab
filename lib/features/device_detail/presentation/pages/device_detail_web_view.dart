@@ -43,27 +43,27 @@ class DeviceDetailWebView extends StatelessWidget {
     if (deviceDetail == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    final isLive = deviceDetail.device.status != DeviceStatus.offline;
+
     return ListView(
       children: [
         DeviceDetailHeader(deviceDetail: deviceDetail),
         SizedBox(height: tokens.spacing.medium),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            childAspectRatio: 1.3,
-          ),
-          itemCount: deviceDetail.sensors.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: EdgeInsets.all(tokens.spacing.xSmall),
-              child: SensorDetailCard(
-                sensor: deviceDetail.sensors[index],
-                isLive: deviceDetail.device.status != DeviceStatus.offline,
+        // A fixed-aspect-ratio GridView forces every cell to the same
+        // height regardless of content, which left dead space below the
+        // old compact chart — this chart is taller and content-driven
+        // (axes, range picker), so each card sizes to its own content and
+        // wraps to the next line instead.
+        Wrap(
+          spacing: tokens.spacing.small,
+          runSpacing: tokens.spacing.small,
+          children: [
+            for (final sensor in deviceDetail.sensors)
+              SizedBox(
+                width: 420,
+                child: SensorDetailCard(sensor: sensor, isLive: isLive),
               ),
-            );
-          },
+          ],
         ),
         SizedBox(height: tokens.spacing.medium),
         const RecentAlertsPlaceholder(),

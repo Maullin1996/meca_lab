@@ -2,6 +2,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/shared/data/datasources/mock_device_data_source.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
 
 void main() {
   test('los datos de fábrica cubren los 4 estados esperados', () {
@@ -129,6 +130,95 @@ void main() {
 
       expect(lastEmission.length, greaterThan(initialLength));
       expect(lastEmission.length, lessThanOrEqualTo(40));
+    });
+  });
+
+  group('generateHistoryForRange', () {
+    test('devuelve una lista vacía para un sensorId desconocido', () {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      expect(
+        dataSource.generateHistoryForRange('unknown', SensorHistoryRange.day),
+        isEmpty,
+      );
+    });
+
+    test('día tiene 24 puntos, semana y mes tienen menos densidad', () {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      final sensorId = dataSource.currentDevices.first.keySensors.first.id;
+
+      expect(
+        dataSource.generateHistoryForRange(sensorId, SensorHistoryRange.day).length,
+        24,
+      );
+      expect(
+        dataSource.generateHistoryForRange(sensorId, SensorHistoryRange.week).length,
+        7,
+      );
+      expect(
+        dataSource.generateHistoryForRange(sensorId, SensorHistoryRange.month).length,
+        30,
+      );
+    });
+
+    test('los puntos quedan dentro del rango seguro del sensor', () {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      final device = dataSource.currentDevices.first;
+      final sensor = device.keySensors.first;
+
+      final points = dataSource.generateHistoryForRange(
+        sensor.id,
+        SensorHistoryRange.month,
+      );
+
+      for (final point in points) {
+        expect(point.value, greaterThanOrEqualTo(sensor.safeMin));
+        expect(point.value, lessThanOrEqualTo(sensor.safeMax));
+      }
+    });
+
+    test('los timestamps quedan ordenados de más antiguo a más reciente', () {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      final sensorId = dataSource.currentDevices.first.keySensors.first.id;
+      final points = dataSource.generateHistoryForRange(
+        sensorId,
+        SensorHistoryRange.week,
+      );
+
+      for (var i = 1; i < points.length; i++) {
+        expect(
+          points[i].timestamp.isAfter(points[i - 1].timestamp),
+          isTrue,
+        );
+      }
+    });
+
+    test('es determinístico para el mismo (sensorId, range)', () {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      final sensorId = dataSource.currentDevices.first.keySensors.first.id;
+
+      final first = dataSource.generateHistoryForRange(
+        sensorId,
+        SensorHistoryRange.day,
+      );
+      final second = dataSource.generateHistoryForRange(
+        sensorId,
+        SensorHistoryRange.day,
+      );
+
+      expect(
+        first.map((p) => p.value).toList(),
+        second.map((p) => p.value).toList(),
+      );
     });
   });
 }
