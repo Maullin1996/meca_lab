@@ -10,6 +10,23 @@ import '../../domain/entities/tenant.dart';
 
 part 'mock_device_data_source.g.dart';
 
+/// How many readings [MockDeviceDataSource] keeps per sensor for the
+/// device_detail sparkline. Bounded so memory doesn't grow for the life of
+/// the session.
+const int _historyBufferSize = 40;
+
+/// A single history point for one sensor. Deliberately not the
+/// `device_detail`-only `SensorReading` domain entity — `shared/data` must
+/// not depend on a feature's `domain/` (dependency runs the other way).
+/// `SensorHistoryRepositoryImpl` maps this to `SensorReading`, attaching the
+/// sensor id the stream is already keyed by.
+class SensorHistoryPoint {
+  final DateTime timestamp;
+  final double value;
+
+  const SensorHistoryPoint({required this.timestamp, required this.value});
+}
+
 /// Session-wide source of truth for device/sensor mock data — every feature
 /// that reads devices (dashboard, device_detail, alerts) goes through the
 /// same instance, so they never disagree on state.
@@ -19,6 +36,7 @@ part 'mock_device_data_source.g.dart';
 /// — that keeps this class a plain, constructible, mockable unit for tests.
 class MockDeviceDataSource {
   MockDeviceDataSource() {
+    _seedHistory();
     _startSimulation();
   }
 
@@ -41,12 +59,50 @@ class MockDeviceDataSource {
   late final Map<String, List<Sensor>> _sensorsByDeviceId = _seedSensors();
   late List<Device> _devices = _seedDevices(_sensorsByDeviceId);
 
+  final Map<String, List<SensorHistoryPoint>> _historyBySensorId = {};
+  final Map<String, StreamController<List<SensorHistoryPoint>>>
+  _historyControllers = {};
+
   /// Broadcasts the current device list on every simulated tick. New
   /// listeners get the current snapshot immediately instead of waiting for
   /// the next tick.
   Stream<List<Device>> get devicesStream => _controller.stream;
 
   List<Device> get currentDevices => List.unmodifiable(_devices);
+
+  /// A device's full sensor list — unlike [Device.keySensors] (a 1-2 sensor
+  /// dashboard snapshot), this is every sensor `device_detail` needs.
+  /// Returns an empty list for an unknown [deviceId].
+  List<Sensor> sensorsForDevice(String deviceId) =>
+      List.unmodifiable(_sensorsByDeviceId[deviceId] ?? const []);
+
+  /// Emits a sensor's bounded reading history on every simulated tick. New
+  /// listeners get the current buffer immediately, same as [devicesStream].
+  Stream<List<SensorHistoryPoint>> historyStream(String sensorId) {
+    final existing = _historyControllers[sensorId];
+    if (existing != null) return existing.stream;
+
+    late final StreamController<List<SensorHistoryPoint>> controller;
+    controller = StreamController<List<SensorHistoryPoint>>.broadcast(
+      onListen: () => controller.add(_historyFor(sensorId)),
+    );
+    _historyControllers[sensorId] = controller;
+    return controller.stream;
+  }
+
+  List<SensorHistoryPoint> _historyFor(String sensorId) =>
+      List.unmodifiable(_historyBySensorId[sensorId] ?? const []);
+
+  void _seedHistory() {
+    final now = DateTime.now();
+    for (final sensors in _sensorsByDeviceId.values) {
+      for (final sensor in sensors) {
+        _historyBySensorId[sensor.id] = [
+          SensorHistoryPoint(timestamp: now, value: sensor.currentValue),
+        ];
+      }
+    }
+  }
 
   void _startSimulation() {
     _controller.onListen = () => _controller.add(currentDevices);
@@ -64,6 +120,10 @@ class MockDeviceDataSource {
         for (final sensor in _sensorsByDeviceId[deviceId]!)
           _isOutOfSafeRange(sensor) ? sensor : _jitter(sensor),
       ];
+
+      for (final sensor in _sensorsByDeviceId[deviceId]!) {
+        _recordHistory(sensor);
+      }
     }
 
     _devices = [
@@ -83,6 +143,17 @@ class MockDeviceDataSource {
     ];
 
     _controller.add(currentDevices);
+  }
+
+  void _recordHistory(Sensor sensor) {
+    final history = _historyBySensorId.putIfAbsent(sensor.id, () => []);
+    history.add(
+      SensorHistoryPoint(timestamp: DateTime.now(), value: sensor.currentValue),
+    );
+    if (history.length > _historyBufferSize) {
+      history.removeAt(0);
+    }
+    _historyControllers[sensor.id]?.add(List.unmodifiable(history));
   }
 
   /// A sensor already outside its safe range stays there — this is how the
@@ -112,6 +183,9 @@ class MockDeviceDataSource {
   void dispose() {
     _timer?.cancel();
     _controller.close();
+    for (final controller in _historyControllers.values) {
+      controller.close();
+    }
   }
 
   static List<Device> _seedDevices(Map<String, List<Sensor>> sensorsByDeviceId) {

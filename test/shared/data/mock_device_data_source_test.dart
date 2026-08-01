@@ -66,4 +66,69 @@ void main() {
       expect(offlineAfter.lastConnection, offlineBefore.lastConnection);
     });
   });
+
+  test('sensorsForDevice devuelve todos los sensores de un dispositivo conocido', () {
+    final dataSource = MockDeviceDataSource();
+    addTearDown(dataSource.dispose);
+
+    final device = dataSource.currentDevices.first;
+    final sensors = dataSource.sensorsForDevice(device.id);
+
+    expect(sensors.length, device.sensorCount);
+  });
+
+  test('sensorsForDevice devuelve una lista vacía para un id desconocido', () {
+    final dataSource = MockDeviceDataSource();
+    addTearDown(dataSource.dispose);
+
+    expect(dataSource.sensorsForDevice('unknown'), isEmpty);
+  });
+
+  test('historyStream emite el historial acumulado con al menos una lectura inicial', () {
+    fakeAsync((async) {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      final sensorId = dataSource.currentDevices.first.keySensors.first.id;
+
+      final emissions = <List<SensorHistoryPoint>>[];
+      final subscription = dataSource
+          .historyStream(sensorId)
+          .listen(emissions.add);
+      addTearDown(subscription.cancel);
+
+      async.flushMicrotasks();
+
+      expect(emissions, isNotEmpty);
+      expect(emissions.first, isNotEmpty);
+    });
+  });
+
+  test('historyStream crece con cada tick hasta el límite del buffer', () {
+    fakeAsync((async) {
+      final dataSource = MockDeviceDataSource();
+      addTearDown(dataSource.dispose);
+
+      // El sensor online del compresor norte nunca queda fuera de rango, así
+      // que su historial crece en cada tick sin estancarse.
+      final onlineDevice = dataSource.currentDevices.firstWhere(
+        (d) => d.status == DeviceStatus.online,
+      );
+      final sensorId = onlineDevice.keySensors.first.id;
+
+      List<SensorHistoryPoint> lastEmission = const [];
+      final subscription = dataSource
+          .historyStream(sensorId)
+          .listen((history) => lastEmission = history);
+      addTearDown(subscription.cancel);
+
+      async.flushMicrotasks();
+      final initialLength = lastEmission.length;
+
+      async.elapse(const Duration(seconds: 200));
+
+      expect(lastEmission.length, greaterThan(initialLength));
+      expect(lastEmission.length, lessThanOrEqualTo(40));
+    });
+  });
 }

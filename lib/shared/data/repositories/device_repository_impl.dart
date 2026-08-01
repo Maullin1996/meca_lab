@@ -25,19 +25,31 @@ class DeviceRepositoryImpl implements DeviceRepository {
     }
   }
 
-  // TODO(device_detail/data): implement over MockDeviceDataSource in the
-  // data step of device_detail. Stubbed here only so DeviceRepositoryImpl
-  // keeps compiling now that the domain interface exposes these methods.
   @override
-  Stream<Either<Failure, Device>> watchDeviceById(String id) {
-    throw UnimplementedError();
+  Stream<Either<Failure, Device>> watchDeviceById(String id) async* {
+    try {
+      await for (final devices in dataSource.devicesStream) {
+        final matches = devices.where((device) => device.id == id);
+        if (matches.isEmpty) {
+          yield Left(UnexpectedFailure('device not found: $id'));
+        } else {
+          yield Right(matches.first);
+        }
+      }
+    } catch (e) {
+      yield Left(UnexpectedFailure(e.toString()));
+    }
   }
 
   @override
   Future<Either<Failure, List<Sensor>>> getSensorsForDevice(
     String deviceId,
-  ) {
-    throw UnimplementedError();
+  ) async {
+    try {
+      return Right(dataSource.sensorsForDevice(deviceId));
+    } catch (e) {
+      return Left(UnexpectedFailure(e.toString()));
+    }
   }
 }
 
