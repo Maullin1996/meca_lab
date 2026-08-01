@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sensor-history data (entity, repository, use case, controller, and the `fl_chart`-based `SensorHistoryChart` widget) started exclusive to `device_detail` and was **promoted to `lib/shared/`** once `dashboard` needed the same history for its per-card mini-charts — a real instance of the skill's "second consumer" rule, not a hypothetical. `dashboard`'s device grid also stopped using `atomic_design`'s `AppGridView` (its column breakpoints don't scale past 4 columns) in favor of a purpose-built `ResponsiveDeviceGrid` — see the skill for both.
 
+`device_detail`'s own chart later diverged from the shared one: `SensorHistoryDetailChart` (feature-exclusive, not `shared/widgets/`) adds full axes, a day/week/month range picker, and a hover tooltip — none of which dashboard's compact cells need or asked for. That range read is a new `SensorHistoryRepository.getHistoryForRange` method (shared repo, additive) backed by a synthetic random-walk generator in `MockDeviceDataSource`, since the live 40-reading buffer only covers ~160s. See the skill for the full breakdown, including two testing gotchas this surfaced (`mocktail` `registerFallbackValue` for custom enum types, and `ListView` virtualizing children even when built as `children: [...]` not `.builder`).
+
 ## Commands
 
 Standard Flutter CLI workflow (run from the repository root):

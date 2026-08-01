@@ -198,7 +198,7 @@ No construyas estos widgets desde cero — el paquete ya los tiene:
 |---|---|
 | Login | **No uses `AppLoginForm`** — no es responsive para web y el diseño no encaja con lo que se busca aquí. Compón la pantalla a medida con los átomos/moléculas de `atomic_design` (`AppInputText`, `AppButtons`, `AppText`, `AppCard`), con layout propio responsive (ver regla de UI a medida abajo) |
 | Dashboard general | `AppSearchBar` (buscador), `AppCard` (KPIs y cada `DeviceCard`), `AppDrawer`/`AppBottomNavBar` según breakpoint, `AppStateWidget` para vacío/error. **No `AppGridView`** para la grilla de dispositivos — ver `ResponsiveDeviceGrid` más abajo. Cada `DeviceCard` grafica un solo sensor a la vez (`SensorHistoryChart` en modo `compact`), con un menú para elegir cuál si el device tiene más de uno — ver "Un solo gráfico por card" más abajo |
-| Detalle de dispositivo | `AppCard` por sensor (`SensorDetailCard`), `AppText` para valores, `AppStateWidget` para vacío/error, `SensorHistoryChart` en modo `full` (grid + borde, más espacio que en el dashboard) |
+| Detalle de dispositivo | `AppCard` por sensor (`SensorDetailCard`), `AppText` para valores, `AppStateWidget` para vacío/error, `SensorHistoryDetailChart` (widget exclusivo de la feature, no `SensorHistoryChart`) con ejes X/Y, selector de rango día/semana/mes y tooltip al pasar el mouse |
 | Alertas | `AppCardList` (loading/empty/error/list) para la lista, `AppSnackBar` al reconocer una alerta |
 | Setpoints | `AppCard` + `AppButtons`, `AppDialog` o `AppBottomSheet` para confirmar el cambio, `AppSnackBar` para la confirmación final |
 
@@ -216,14 +216,37 @@ definidos a pedido de Juan Camilo, no son los de `atomic_design`): `<450px→1, 
 vez de estirar 4 cards cada vez más anchas. Si se necesita otra grilla similar en una feature
 futura, revisa primero si estos breakpoints le sirven antes de inventar un tercer esquema.
 
-**Un solo gráfico por card, no uno por sensor.** Un `DeviceCard` con 2 sensores necesitaría el
-doble de alto que uno con 1 si se apila un `SensorHistoryChart` por sensor — no encaja con un grid
-de celdas de aspect ratio fijo. `DeviceCard` es `StatefulWidget` solo para recordar qué sensor está
-graficado: lista **todas** las lecturas actuales como texto (barato, una línea cada una), pero
-grafica un único sensor a la vez — el primero por defecto, con un `PopupMenuButton` (ícono `⋮`,
-`AppIcons.menu`) para cambiar cuál cuando el device tiene más de uno. `device_detail` no tiene este
-problema (una sola card grande por sensor, no una grilla de celdas fijas) así que ahí sí se muestra
-el historial completo de cada sensor sin selector.
+**Un solo gráfico por card, no uno por sensor (dashboard).** Un `DeviceCard` con 2 sensores
+necesitaría el doble de alto que uno con 1 si se apila un `SensorHistoryChart` por sensor — no
+encaja con un grid de celdas de aspect ratio fijo. `DeviceCard` es `StatefulWidget` solo para
+recordar qué sensor está graficado: lista **todas** las lecturas actuales como texto (barato, una
+línea cada una), pero grafica un único sensor a la vez — el primero por defecto, con un
+`PopupMenuButton` (ícono `⋮`, `AppIcons.menu`) para cambiar cuál cuando el device tiene más de uno.
+
+**`device_detail` sí muestra el historial completo de cada sensor** (una sola card grande por
+sensor, no una grilla de celdas fijas, así que no tiene el problema de arriba) — pero con un chart
+propio, distinto al de dashboard:
+
+**`SensorHistoryDetailChart`** (`device_detail/presentation/widgets/`, exclusivo de la feature —
+**no** vive en `shared/widgets/` aunque el nombre se parezca al de `SensorHistoryChart`) agrega lo
+que el chart compacto del dashboard no necesita: ejes X (tiempo) e Y (variable + unidad) siempre
+visibles, un selector de rango día/semana/mes (mismo patrón de `PopupMenuButton` que el selector de
+sensor de `DeviceCard`), y un tooltip al pasar el mouse (`LineTouchData` de `fl_chart`) con el valor
+y la fecha/hora del punto. Nada de esto se agregó a `SensorHistoryChart` compartido — se habría
+tenido que forzar en las celdas angostas del dashboard, que nunca lo pidieron. Como consecuencia,
+`ChartVariant.full` de `SensorHistoryChart` quedó sin uso real (solo `compact` se usa hoy); no se
+borró de forma unilateral, queda como decisión a confirmar con Juan Camilo si se limpia.
+
+El historial por rango no sale del buffer "vivo" de 40 lecturas (~160s) que ya usa
+`watchSensorHistory` — `SensorHistoryRepository` ganó un método nuevo, `getHistoryForRange(sensorId,
+range)` (`Future`, no `Stream`, porque es una lectura puntual, no algo que se re-suscribe), y
+`MockDeviceDataSource.generateHistoryForRange` genera una caminata aleatoria sintética por sensor
+(24 puntos/hora para día, 7/día para semana, 30/día para mes), determinística por
+`(sensorId, range)` (seed fijo) para que no "salte" al cambiar de rango y volver — ejemplo real de
+"un repositorio compartido puede ganar métodos nuevos" (ver esa sección más abajo). El caso de uso
+que lo llama (`GetSensorHistoryForRangeUseCase`) y el provider (`sensorHistoryForRangeProvider`,
+family por `(sensorId, range)`) sí son exclusivos de `device_detail` — solo esa pantalla necesita
+esta lectura, así que no subieron a `shared/`.
 
 **Convención de archivos para pantallas con layout distinto en web y mobile:** separa
 *orquestación* de *composición visual*, nunca dupliques la lógica completa en dos pantallas
@@ -250,16 +273,27 @@ casos, apóyate en el plugin `frontend-design` (jerarquía visual, composición,
 resto de la app.
 
 **Componentes que NO existen todavía en `atomic_design`** (hay que construirlos, no evitarlos):
-el control de setpoint (slider/stepper acotado a un rango) sigue pendiente. El sparkline de
-historial de sensor ya se construyó — `SensorHistoryChart` en `lib/shared/widgets/`, sobre
-**`fl_chart`** (única dependencia externa de gráficos del proyecto; no agregues una segunda
-librería de charts sin confirmar con Juan Camilo). Tiene dos variantes (`ChartVariant.full`/
-`compact`, ver arriba) y un flag `isLive` que apaga el color y desactiva la animación cuando el
-device está offline, para no mostrar un gráfico "vivo" engañoso. Para lo que sí falta construir
-(el control de setpoint): sigue el mismo criterio — usa `AppColors.of(context)` /
-`AppTokens.of(context)`, nunca valores hardcodeados, y si tiene uso más allá de este proyecto vale
-la pena sugerir subirlo a `atomic_design` en vez de dejarlo suelto en la app (confírmalo con Juan
-Camilo antes de tocar ese repo).
+el control de setpoint (slider/stepper acotado a un rango) sigue pendiente — sigue el mismo
+criterio que los charts: usa `AppColors.of(context)` / `AppTokens.of(context)`, nunca valores
+hardcodeados, y si tiene uso más allá de este proyecto vale la pena sugerir subirlo a
+`atomic_design` en vez de dejarlo suelto en la app (confírmalo con Juan Camilo antes de tocar ese
+repo).
+
+Los charts de historial de sensor ya se construyeron, sobre **`fl_chart`** (única dependencia
+externa de gráficos del proyecto; no agregues una segunda librería de charts sin confirmar con
+Juan Camilo) — hay **dos widgets**, no uno:
+- **`SensorHistoryChart`** (`lib/shared/widgets/`) — el compacto que usa dashboard. Variantes
+  `ChartVariant.full`/`compact` (`full` sin uso real hoy, ver arriba) y un flag `isLive` que apaga
+  el color y desactiva la animación cuando el device está offline.
+- **`SensorHistoryDetailChart`** (`device_detail/presentation/widgets/`) — el de la pantalla de
+  detalle, con ejes, selector de rango y tooltip (ver "Un solo gráfico por card" más arriba). No
+  comparte código con `SensorHistoryChart` más allá de usar la misma librería `fl_chart` — son dos
+  composiciones deliberadamente distintas para necesidades distintas.
+
+`device_detail_web_view.dart` tampoco usa un grid de aspect ratio fijo para las cards de sensor —
+usa `Wrap` (cada card mide su propio contenido; con `SensorHistoryDetailChart` la altura ya no es
+constante como en dashboard, así que ni `ResponsiveDeviceGrid` ni un `GridView` con
+`childAspectRatio` fijo le servían).
 
 ## Enrutamiento
 
@@ -348,6 +382,20 @@ verde.
   solo (`find.byType(LineChart)` es específico); si en el futuro se vuelve a necesitar un
   `CustomPainter` a mano, usa `find.byWidgetPredicate` comparando
   `widget.painter.runtimeType.toString()` en vez de contar `CustomPaint` a secas.
+- **`mocktail`'s `any()`/`captureAny()` con un tipo propio (enum incluido) necesita
+  `registerFallbackValue(...)` en `setUpAll`** antes de usarse — si no, el mock explota con "A test
+  tried to use `any` ... but registerFallbackValue was not previously called". Pasó al agregar
+  `any()` para `SensorHistoryRange` en tests que mockean `SensorHistoryRepository.getHistoryForRange`.
+  Solo hace falta en los archivos que realmente usan `any()`/`captureAny()` para ese tipo, no en
+  todos los que mockean la interfaz.
+- **Una `ListView` no lazy (`ListView(children: [...])`) igual virtualiza sus hijos** — solo monta
+  los widgets dentro del viewport + `cacheExtent` (250px por defecto), no absolutamente todos solo
+  porque la lista se construyó de una vez. Con cards más altas (ej. `SensorHistoryDetailChart`, más
+  grande que el sparkline compacto anterior), un widget al final de la lista (`RecentAlertsPlaceholder`)
+  puede quedar fuera de esa ventana y `find.text`/`find.byType` no lo encuentran aunque exista
+  lógicamente en la lista — no es un bug de la pantalla. Usa
+  `await tester.scrollUntilVisible(finder, delta)` antes de la aserción en vez de asumir que todo
+  está montado.
 
 ---
 
@@ -359,8 +407,9 @@ verde.
    no `AppGridView`) con badge de estado (online/warning/critical/offline), búsqueda/filtro, y un
    mini-gráfico de tendencia por card (un sensor a la vez, con selector si hay más de uno) que
    navega al detalle real al tocar la card. **Completa.**
-3. **Detalle de dispositivo** (`features/device_detail`) — header con nombre/badge/última conexión,
-   una card grande por sensor con su historial completo (`SensorHistoryChart` en modo `full`), y una
+3. **Detalle de dispositivo** (`features/device_detail`) — header con nombre/badge/última conexión
+   (textos a tamaño legible, no `.caption`/`.label` diminutos), una card grande por sensor con su
+   historial completo (`SensorHistoryDetailChart`: ejes, selector día/semana/mes, tooltip), y una
    sección de "alertas recientes" que hoy es un placeholder visual (`RecentAlertsPlaceholder`, sin
    ruta ni lógica propia) hasta que exista `alerts`. **Completa.**
 4. **Alertas** (`features/alerts`) — lista filtrable por severidad/estado, con "Reconocer". No
@@ -382,10 +431,12 @@ Jerarquía obligatoria, aunque el mock solo tenga un tenant: `Tenant → Site �
   sensores del device) y `keySensors` (snapshot para la card del dashboard — no la lista completa,
   esa la resuelve `device_detail` vía `DeviceRepository.getSensorsForDevice`).
 - **Sensor**: id, device_id, nombre, tipo (temperatura/presión/vibración/corriente/rpm), unidad,
-  valor actual, rango seguro (min/max). El historial de lecturas para `SensorHistoryChart` no vive
-  en la entidad `Sensor` — `MockDeviceDataSource` mantiene un buffer acotado (40 lecturas) por
-  sensor, expuesto vía `SensorHistoryRepository.watchSensorHistory` (`shared/domain`), y se
-  congela (deja de recibir lecturas nuevas) cuando el device pasa a offline.
+  valor actual, rango seguro (min/max). El historial de lecturas no vive en la entidad `Sensor` —
+  `MockDeviceDataSource` expone dos fuentes distintas vía `SensorHistoryRepository`
+  (`shared/domain`): un buffer "vivo" acotado (40 lecturas, ~160s) por `watchSensorHistory`
+  (`Stream`, usado por ambos charts), que se congela cuando el device pasa a offline; y una
+  caminata aleatoria sintética por rango (día/semana/mes) por `getHistoryForRange` (`Future`,
+  usado solo por `SensorHistoryDetailChart` en `device_detail`).
 - **Alert**: id, device_id, sensor_id opcional, severidad (info/warning/critical), mensaje,
   timestamp, estado (activa/reconocida/resuelta).
 - **Setpoint**: id, device_id, nombre, valor actual, rango (min/max), unidad, quién puede editarlo,
