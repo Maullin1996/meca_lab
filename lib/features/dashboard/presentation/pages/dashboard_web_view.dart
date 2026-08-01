@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/device_card.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/responsive_device_grid.dart';
 import 'dashboard_view_data.dart';
 
 class DashboardWebView extends StatelessWidget {
@@ -78,7 +79,7 @@ class DashboardWebView extends StatelessWidget {
             ),
             SizedBox(height: tokens.spacing.medium),
             Expanded(
-              child: AppGridView(
+              child: ResponsiveDeviceGrid(
                 type: data.gridType,
                 itemCount: data.devices.length,
                 itemBuilder: (context, index) {
@@ -88,7 +89,16 @@ class DashboardWebView extends StatelessWidget {
                     onTap: () => data.onDeviceTap(device),
                   );
                 },
-                childAspectRatio: 1.2,
+                // ResponsiveDeviceGrid sizes cells purely from this ratio
+                // (no content-based autosizing) — but unlike AppGridView it
+                // keeps adding columns past 840px (see its column-count
+                // breakpoints), so card width stays roughly bounded instead
+                // of stretching 4 cards across arbitrarily wide screens.
+                // DeviceCard now graphs exactly one sensor (see its doc
+                // comment), so content height is light and roughly constant
+                // — 1.6 fits that comfortably across the column range, with
+                // a scroll safety net in the card for the rare narrow edge.
+                childAspectRatio: 1.6,
                 emptyWidget: AppStateWidget(
                   type: AppStateType.empty,
                   icon: AppIcons.information,

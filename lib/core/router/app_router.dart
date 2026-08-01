@@ -5,12 +5,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/device_detail/presentation/pages/device_detail_page.dart';
 
 part 'app_router.g.dart';
 
 abstract class AppRoutes {
   static const login = '/login';
   static const dashboard = '/dashboard';
+  static const deviceDetail = '/devices/:id';
+
+  static String deviceDetailPath(String deviceId) => '/devices/$deviceId';
 }
 
 @Riverpod(keepAlive: true)
@@ -38,6 +42,11 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.dashboard,
         builder: (context, state) => const DashboardPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.deviceDetail,
+        builder: (context, state) =>
+            DeviceDetailPage(deviceId: state.pathParameters['id']!),
       ),
     ],
   );

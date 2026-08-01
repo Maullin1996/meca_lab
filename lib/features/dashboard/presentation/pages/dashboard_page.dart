@@ -1,15 +1,16 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/responsive/app_breakpoints.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../shared/domain/entities/device.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import 'dashboard_mobile_view.dart';
 import 'dashboard_view_data.dart';
 import 'dashboard_web_view.dart';
-import 'device_detail_placeholder_page.dart';
 
 /// Orchestrator: the only file in this screen that reads
 /// [dashboardControllerProvider]. Picks [DashboardMobileView] or
@@ -43,12 +44,7 @@ class DashboardPage extends ConsumerWidget {
     }
 
     void handleDeviceTap(Device device) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) =>
-              DeviceDetailPlaceholderPage(deviceName: device.name),
-        ),
-      );
+      context.push(AppRoutes.deviceDetailPath(device.id));
     }
 
     final viewData = DashboardViewData(
