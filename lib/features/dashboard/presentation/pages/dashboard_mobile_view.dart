@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/device_card.dart';
 import '../widgets/kpi_card.dart';
+import '../widgets/responsive_device_grid.dart';
 import 'dashboard_view_data.dart';
 
 class DashboardMobileView extends StatelessWidget {
@@ -66,7 +67,7 @@ class DashboardMobileView extends StatelessWidget {
               ),
               SizedBox(height: tokens.spacing.small),
               Expanded(
-                child: AppGridView(
+                child: ResponsiveDeviceGrid(
                   type: data.gridType,
                   itemCount: data.devices.length,
                   itemBuilder: (context, index) {

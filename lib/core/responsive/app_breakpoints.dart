@@ -5,8 +5,8 @@
 /// per screen.
 abstract class AppBreakpoints {
   /// Below this width, screens use their mobile layout; at or above it,
-  /// the web layout. Matches the `large` breakpoint atomic_design already
-  /// uses internally (e.g. `AppGridView`'s column count changes at 600).
+  /// the web layout (different `Scaffold`/`AppBar` composition, not just a
+  /// grid column count — see `dashboard_mobile_view.dart`/`_web_view.dart`).
   static const double web = 600;
 
   static bool isWeb(double width) => width >= web;
