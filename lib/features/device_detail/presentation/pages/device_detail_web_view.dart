@@ -1,6 +1,7 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/domain/entities/device.dart';
 import '../../domain/entities/device_detail.dart';
 import '../widgets/device_detail_header.dart';
 import '../widgets/recent_alerts_placeholder.dart';
@@ -57,7 +58,10 @@ class DeviceDetailWebView extends StatelessWidget {
           itemBuilder: (context, index) {
             return Padding(
               padding: EdgeInsets.all(tokens.spacing.xSmall),
-              child: SensorDetailCard(sensor: deviceDetail.sensors[index]),
+              child: SensorDetailCard(
+                sensor: deviceDetail.sensors[index],
+                isLive: deviceDetail.device.status != DeviceStatus.offline,
+              ),
             );
           },
         ),

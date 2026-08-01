@@ -1,6 +1,7 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/domain/entities/device.dart';
 import '../../domain/entities/device_detail.dart';
 import '../widgets/device_detail_header.dart';
 import '../widgets/recent_alerts_placeholder.dart';
@@ -51,7 +52,10 @@ class DeviceDetailMobileView extends StatelessWidget {
         for (final sensor in deviceDetail.sensors)
           Padding(
             padding: EdgeInsets.only(bottom: tokens.spacing.small),
-            child: SensorDetailCard(sensor: sensor),
+            child: SensorDetailCard(
+              sensor: sensor,
+              isLive: deviceDetail.device.status != DeviceStatus.offline,
+            ),
           ),
         SizedBox(height: tokens.spacing.medium),
         const RecentAlertsPlaceholder(),

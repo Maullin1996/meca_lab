@@ -8,7 +8,7 @@ import '../../domain/entities/device_detail.dart';
 ///
 /// Per-sensor history is deliberately **not** here: each sensor card watches
 /// its own `sensorHistoryControllerProvider` directly (see
-/// `sensor_sparkline.dart`), so it isn't lifted into this bag.
+/// `sensor_history_chart.dart`), so it isn't lifted into this bag.
 class DeviceDetailViewData {
   final DeviceDetail? deviceDetail;
   final bool hasError;

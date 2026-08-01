@@ -1,9 +1,9 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/device_detail/data/repositories/sensor_history_repository_impl.dart';
-import 'package:meca_lab/features/device_detail/domain/entities/sensor_reading.dart';
 import 'package:meca_lab/shared/data/datasources/mock_device_data_source.dart';
+import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_reading.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockMockDeviceDataSource extends Mock implements MockDeviceDataSource {}

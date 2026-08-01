@@ -146,25 +146,38 @@ ya se estableció). No crees `lib/shared/widgets/` vacío de antemano — se cre
 widget realmente sube ahí.
 
 **`lib/shared/domain/`** — mismo espíritu que `shared/widgets/`, pero para entidades y contratos de
-repositorio que **ya sabemos** (por la sección "Modelo de datos mock" de este mismo archivo) que
-usa más de una feature desde el principio: `Tenant`, `Site`, `Device`, `Sensor` (y su
-`SensorReading` cuando haga falta), más la interfaz `DeviceRepository`. Esto no es la regla del
-segundo consumidor especulativa — es una necesidad ya documentada, no una suposición. `Alert`,
-`Setpoint` y `User` siguen siendo exclusivos de su feature (`features/alerts/domain`,
-`features/setpoints/domain`, `features/auth/domain`) — esos sí esperan a un segundo consumidor real
-antes de moverse, si es que llega a pasar.
-Los **casos de uso** (`WatchDevicesUseCase`, futuros `GetDeviceByIdUseCase`, etc.) siguen viviendo
-dentro de la `domain/` de cada feature aunque operen sobre las entidades compartidas — encapsulan
-la regla de negocio específica de esa pantalla, no el modelo de datos en sí.
+repositorio que usa más de una feature: `Tenant`, `Site`, `Device`, `Sensor`, más la interfaz
+`DeviceRepository` (compartidos desde el principio, por la sección "Modelo de datos mock").
+`SensorReading` y `SensorHistoryRepository` empezaron exclusivos de `device_detail` y se
+**promovieron** a `shared/domain` cuando `dashboard` los necesitó también (sparklines en las cards)
+— ejemplo real de la regla del segundo consumidor operando como debía, no una excepción a ella.
+`Alert`, `Setpoint` y `User` siguen siendo exclusivos de su feature — esperan su propio segundo
+consumidor real, si llega a pasar.
+
+Los **casos de uso** normalmente viven dentro de la `domain/` de cada feature aunque operen sobre
+entidades compartidas, porque encapsulan una regla de negocio específica de esa pantalla (ej.
+`WatchDeviceDetailUseCase` combina device + sensores de una forma que dashboard no necesita).
+**Excepción:** si un caso de uso es exactamente la misma operación sin ninguna variación de regla
+de negocio entre features (ej. `WatchSensorHistoryUseCase` — "dame el historial de este sensor" es
+idéntico lo pida quien lo pida), va también en `shared/domain/usecases/` en vez de duplicarse una
+vez por feature. La pregunta para decidir: ¿hay alguna lógica propia de la pantalla más allá de
+llamar al repositorio? Si no, es compartido.
+
+**`lib/shared/presentation/controllers/`** — mismo criterio que arriba, pero para controllers de
+Riverpod: cuando un controller expone exactamente el mismo estado sin lógica propia de una pantalla
+(ej. `sensorHistoryControllerProvider`, usado igual por `device_detail` y por las cards de
+`dashboard`), vive acá en vez de duplicarse o de que una feature importe el controller interno de
+otra (eso sí rompería el aislamiento entre features). No crees esta carpeta de antemano — igual que
+`shared/widgets/`, se crea cuando el primer controller realmente cruza esa línea.
 
 **Un repositorio compartido puede ganar métodos nuevos, siempre que sigan devolviendo solo
 entidades ya compartidas** (ej. `DeviceRepository.watchDeviceById` sigue devolviendo `Device`, y
 `DeviceRepository.getSensorsForDevice` puede devolver `List<Sensor>` porque `Sensor` ya es
 compartido — aunque `Device` en sí solo traiga `keySensors`, no la lista completa). Si una
 funcionalidad nueva obligaría a que el repositorio compartido devuelva una entidad que hoy es
-exclusiva de una sola feature (ej. `SensorReading`), esa funcionalidad **no** entra al repositorio
-compartido — se crea un repositorio propio de esa feature (con su propia entidad en su `domain/`),
-cuya implementación en `data/` sí puede depender de la misma fuente de datos compartida. Compartir
+exclusiva de una sola feature, esa funcionalidad **no** entra al repositorio compartido — se
+crea un repositorio propio de esa feature (con su propia entidad en su `domain/`), cuya
+implementación en `data/` sí puede depender de la misma fuente de datos compartida. Compartir
 la *fuente de datos* en `data` no obliga a compartir la *entidad* en `domain`.
 
 ## Qué componente de `atomic_design` usar en cada pantalla
@@ -174,7 +187,7 @@ No construyas estos widgets desde cero — el paquete ya los tiene:
 | Pantalla | Componentes de `atomic_design` a reutilizar |
 |---|---|
 | Login | **No uses `AppLoginForm`** — no es responsive para web y el diseño no encaja con lo que se busca aquí. Compón la pantalla a medida con los átomos/moléculas de `atomic_design` (`AppInputText`, `AppButtons`, `AppText`, `AppCard`), con layout propio responsive (ver regla de UI a medida abajo) |
-| Dashboard general | `AppSearchBar` (buscador), `AppGridView` (grid de dispositivos — ya trae loading/empty/error/list), `AppCard` (KPIs), `AppDrawer`/`AppBottomNavBar` según breakpoint |
+| Dashboard general | `AppSearchBar` (buscador), `AppGridView` (grid de dispositivos — ya trae loading/empty/error/list), `AppCard` (KPIs), `AppDrawer`/`AppBottomNavBar` según breakpoint, mini-gráfico de tendencia en cada card (mismo widget de `shared/widgets` que usa el detalle, en modo compacto sin ejes) |
 | Detalle de dispositivo | `AppCard` por sensor, `AppText` para valores, `AppStateWidget` para vacío/error |
 | Alertas | `AppCardList` (loading/empty/error/list) para la lista, `AppSnackBar` al reconocer una alerta |
 | Setpoints | `AppCard` + `AppButtons`, `AppDialog` o `AppBottomSheet` para confirmar el cambio, `AppSnackBar` para la confirmación final |
@@ -315,5 +328,5 @@ aleatoriedad en cada render.
 - [ ] ¿Evitaste crear carpetas de features o capas futuras sin código todavía?
 - [ ] ¿Evitaste usar Firebase sin confirmarlo explícitamente?
 - [ ] ¿Usaste solo nombres ficticios de cliente/planta, nunca el real?
-- [ ] Si creaste algo en `lib/shared/widgets/`, ¿ya hay una segunda feature usándolo de verdad
-      (no "por si acaso")?
+- [ ] Si creaste o promoviste algo a `lib/shared/` (widgets, domain o presentation/controllers),
+      ¿ya hay una segunda feature usándolo de verdad (no "por si acaso")?

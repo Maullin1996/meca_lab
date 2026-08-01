@@ -7,16 +7,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/device_detail/data/repositories/sensor_history_repository_impl.dart';
-import 'package:meca_lab/features/device_detail/domain/repositories/sensor_history_repository.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_mobile_view.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_web_view.dart';
 import 'package:meca_lab/features/device_detail/presentation/widgets/sensor_detail_card.dart';
 import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
+import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
+import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockDeviceRepository extends Mock implements DeviceRepository {}

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/device_detail/domain/entities/sensor_reading.dart';
-import 'package:meca_lab/features/device_detail/domain/repositories/sensor_history_repository.dart';
-import 'package:meca_lab/features/device_detail/domain/usecases/watch_sensor_history_usecase.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_reading.dart';
+import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
+import 'package:meca_lab/shared/domain/usecases/watch_sensor_history_usecase.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockSensorHistoryRepository extends Mock

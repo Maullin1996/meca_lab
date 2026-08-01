@@ -14,7 +14,7 @@ import 'device_detail_web_view.dart';
 /// business logic lives here.
 ///
 /// Per-sensor history is watched separately by each sensor card
-/// (`sensor_sparkline.dart`), not here.
+/// (`sensor_history_chart.dart`), not here.
 class DeviceDetailPage extends ConsumerWidget {
   final String deviceId;
 
