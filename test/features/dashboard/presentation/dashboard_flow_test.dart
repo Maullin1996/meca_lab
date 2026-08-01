@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:atomic_design/atoms/app_tokens.dart';
-import 'package:atomic_design/config/atomic_design_config.dart';
+import 'package:atomic_design/design_system.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,13 +13,14 @@ import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_mobile_
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_web_view.dart';
 import 'package:meca_lab/features/dashboard/presentation/widgets/device_card.dart';
-import 'package:meca_lab/features/device_detail/data/repositories/sensor_history_repository_impl.dart';
-import 'package:meca_lab/features/device_detail/domain/repositories/sensor_history_repository.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
+import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
+import 'package:meca_lab/shared/domain/entities/sensor_reading.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
+import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockDeviceRepository extends Mock implements DeviceRepository {}
@@ -196,6 +197,52 @@ void main() {
     expect(find.text('Motor Backup'), findsOneWidget);
     expect(find.text('Compresor Norte'), findsNothing);
   });
+
+  testWidgets(
+    'cada sensor con historial muestra su mini-gráfico, y el del dispositivo offline sale apagado',
+    (tester) async {
+      final devices = [
+        buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
+        buildDevice(id: 'dev-2', name: 'Motor Backup', status: DeviceStatus.offline),
+      ];
+      when(
+        () => repository.watchDevices(),
+      ).thenAnswer((_) => Stream.value(Right(devices)));
+
+      final readings = [
+        SensorReading(
+          sensorId: 'sensor-dev-1',
+          timestamp: DateTime(2026, 7, 31, 10),
+          value: 50,
+        ),
+        SensorReading(
+          sensorId: 'sensor-dev-1',
+          timestamp: DateTime(2026, 7, 31, 10, 0, 4),
+          value: 51,
+        ),
+      ];
+      when(
+        () => historyRepository.watchSensorHistory('sensor-dev-1'),
+      ).thenAnswer((_) => Stream.value(Right(readings)));
+      when(
+        () => historyRepository.watchSensorHistory('sensor-dev-2'),
+      ).thenAnswer((_) => Stream.value(Right(readings)));
+
+      await setSurfaceSize(tester, mobileSize);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LineChart), findsNWidgets(2));
+
+      final onlineChart = tester.widget<LineChart>(find.byType(LineChart).at(0));
+      final offlineChart = tester.widget<LineChart>(find.byType(LineChart).at(1));
+      final colors = AppColors.of(tester.element(find.byType(LineChart).first));
+
+      expect(onlineChart.data.lineBarsData.first.color, colors.primary);
+      expect(offlineChart.data.lineBarsData.first.color, colors.textDisabled);
+      expect(offlineChart.duration, Duration.zero);
+    },
+  );
 
   testWidgets('estado de error si el repositorio falla', (tester) async {
     when(() => repository.watchDevices()).thenAnswer(
