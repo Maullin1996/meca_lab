@@ -2,7 +2,7 @@ import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/domain/entities/device.dart';
-import 'device_status_badge.dart';
+import '../../../../shared/widgets/device_status_badge.dart';
 
 /// Feature-scoped for now — becomes a `lib/shared/widgets/` candidate only
 /// once `device_detail` needs the same card (second-consumer rule).

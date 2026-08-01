@@ -1,10 +1,11 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../shared/domain/entities/device.dart';
+import '../domain/entities/device.dart';
 
-/// Feature-scoped for now — becomes a `lib/shared/widgets/` candidate only
-/// once `device_detail` needs the same badge (second-consumer rule).
+/// Shared between `dashboard` (device cards) and `device_detail` (screen
+/// header) — the second real consumer that promoted it out of
+/// `dashboard/presentation/widgets`.
 class DeviceStatusBadge extends StatelessWidget {
   final DeviceStatus status;
 

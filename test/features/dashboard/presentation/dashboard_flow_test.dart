@@ -6,11 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:meca_lab/core/error/failures.dart';
+import 'package:meca_lab/core/router/app_router.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_mobile_view.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_web_view.dart';
 import 'package:meca_lab/features/dashboard/presentation/widgets/device_card.dart';
+import 'package:meca_lab/features/device_detail/data/repositories/sensor_history_repository_impl.dart';
+import 'package:meca_lab/features/device_detail/domain/repositories/sensor_history_repository.dart';
+import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
@@ -19,8 +24,12 @@ import 'package:mocktail/mocktail.dart';
 
 class MockDeviceRepository extends Mock implements DeviceRepository {}
 
+class MockSensorHistoryRepository extends Mock
+    implements SensorHistoryRepository {}
+
 void main() {
   late MockDeviceRepository repository;
+  late MockSensorHistoryRepository historyRepository;
 
   const mobileSize = Size(390, 844);
   const webSize = Size(1280, 800);
@@ -53,16 +62,43 @@ void main() {
 
   setUp(() async {
     repository = MockDeviceRepository();
+    historyRepository = MockSensorHistoryRepository();
+    when(
+      () => historyRepository.watchSensorHistory(any()),
+    ).thenAnswer((_) => const Stream.empty());
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );
   });
 
+  /// A real (if minimal) `GoRouter` — `DashboardPage.handleDeviceTap` uses
+  /// `context.push`, which needs an ancestor `GoRouter` to resolve, not a
+  /// plain `Navigator`.
   Widget buildApp() {
+    final router = GoRouter(
+      initialLocation: AppRoutes.dashboard,
+      routes: [
+        GoRoute(
+          path: AppRoutes.dashboard,
+          builder: (context, state) => const DashboardPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.deviceDetail,
+          builder: (context, state) =>
+              DeviceDetailPage(deviceId: state.pathParameters['id']!),
+        ),
+      ],
+    );
+
     return ProviderScope(
-      overrides: [deviceRepositoryImplProvider.overrideWithValue(repository)],
-      child: const AppThemeProvider(
-        child: MaterialApp(home: DashboardPage()),
+      overrides: [
+        deviceRepositoryImplProvider.overrideWithValue(repository),
+        sensorHistoryRepositoryImplProvider.overrideWithValue(
+          historyRepository,
+        ),
+      ],
+      child: AppThemeProvider(
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
   }
@@ -175,5 +211,33 @@ void main() {
 
     expect(find.text('No pudimos cargar los dispositivos'), findsOneWidget);
     expect(find.byType(DeviceCard), findsNothing);
+  });
+
+  testWidgets('tocar una card navega al detalle real del dispositivo', (
+    tester,
+  ) async {
+    final devices = [
+      buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
+    ];
+    when(
+      () => repository.watchDevices(),
+    ).thenAnswer((_) => Stream.value(Right(devices)));
+    when(
+      () => repository.watchDeviceById('dev-1'),
+    ).thenAnswer((_) => Stream.value(Right(devices.first)));
+    when(
+      () => repository.getSensorsForDevice('dev-1'),
+    ).thenAnswer((_) async => const Right([]));
+
+    await setSurfaceSize(tester, mobileSize);
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(DeviceCard));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DashboardPage), findsNothing);
+    expect(find.byType(DeviceDetailPage), findsOneWidget);
+    expect(find.text('Compresor Norte'), findsOneWidget);
   });
 }
