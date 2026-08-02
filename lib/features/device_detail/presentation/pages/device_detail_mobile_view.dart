@@ -57,8 +57,8 @@ class DeviceDetailMobileView extends StatelessWidget {
               isLive: deviceDetail.device.status != DeviceStatus.offline,
             ),
           ),
-        SizedBox(height: tokens.spacing.medium),
-        const RecentAlertsPlaceholder(),
+        // SizedBox(height: tokens.spacing.medium),
+        // const RecentAlertsPlaceholder(),
       ],
     );
   }

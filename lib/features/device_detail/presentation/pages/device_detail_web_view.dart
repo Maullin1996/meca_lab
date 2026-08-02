@@ -65,8 +65,8 @@ class DeviceDetailWebView extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: tokens.spacing.medium),
-        const RecentAlertsPlaceholder(),
+        // SizedBox(height: tokens.spacing.medium),
+        // const RecentAlertsPlaceholder(),
       ],
     );
   }
