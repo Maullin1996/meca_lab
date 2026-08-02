@@ -21,6 +21,12 @@ class DashboardMobileView extends StatelessWidget {
         title: AppText.h6('MecLab IoT', color: colors.primary),
         actions: [
           AppButtons(
+            key: const Key('alerts-button'),
+            type: ButtonType.primaryIconButton,
+            icon: AppIcons.notification,
+            onPressed: data.onAlertsTap,
+          ),
+          AppButtons(
             key: const Key('logout-button'),
             type: ButtonType.primaryIconButton,
             icon: Icons.logout,

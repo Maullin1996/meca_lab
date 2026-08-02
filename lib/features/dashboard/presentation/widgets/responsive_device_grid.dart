@@ -58,7 +58,8 @@ class ResponsiveDeviceGrid extends StatelessWidget {
           child: _grid(
             context,
             8,
-            (context, index) => AppCard(isLoading: true, child: const SizedBox()),
+            (context, index) =>
+                AppCard(isLoading: true, child: const SizedBox()),
           ),
         ),
         GridViewType.empty => KeyedSubtree(
@@ -73,11 +74,7 @@ class ResponsiveDeviceGrid extends StatelessWidget {
     );
   }
 
-  Widget _grid(
-    BuildContext context,
-    int count,
-    IndexedWidgetBuilder builder,
-  ) {
+  Widget _grid(BuildContext context, int count, IndexedWidgetBuilder builder) {
     final tokens = AppTokens.of(context);
     final columnCount = columnCountForWidth(MediaQuery.sizeOf(context).width);
 

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/alerts/presentation/pages/alerts_page.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
@@ -13,6 +14,7 @@ abstract class AppRoutes {
   static const login = '/login';
   static const dashboard = '/dashboard';
   static const deviceDetail = '/devices/:id';
+  static const alerts = '/alerts';
 
   static String deviceDetailPath(String deviceId) => '/devices/$deviceId';
 }
@@ -47,6 +49,10 @@ GoRouter goRouter(Ref ref) {
         path: AppRoutes.deviceDetail,
         builder: (context, state) =>
             DeviceDetailPage(deviceId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.alerts,
+        builder: (context, state) => const AlertsPage(),
       ),
     ],
   );

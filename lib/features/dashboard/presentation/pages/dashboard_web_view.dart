@@ -23,6 +23,15 @@ class DashboardWebView extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(right: tokens.spacing.small),
             child: AppButtons(
+              key: const Key('alerts-button'),
+              type: ButtonType.primaryIconButton,
+              icon: AppIcons.notification,
+              onPressed: data.onAlertsTap,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: tokens.spacing.small),
+            child: AppButtons(
               key: const Key('logout-button'),
               type: ButtonType.primaryTextButton,
               title: AppText.body('Cerrar sesión', color: colors.textPrimary),

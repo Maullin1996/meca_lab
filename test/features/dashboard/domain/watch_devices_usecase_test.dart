@@ -39,9 +39,9 @@ void main() {
   });
 
   test('emite Left cuando el repositorio falla', () async {
-    when(() => repository.watchDevices()).thenAnswer(
-      (_) => Stream.value(const Left(UnexpectedFailure('boom'))),
-    );
+    when(
+      () => repository.watchDevices(),
+    ).thenAnswer((_) => Stream.value(const Left(UnexpectedFailure('boom'))));
 
     await expectLater(
       useCase(),

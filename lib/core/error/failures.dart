@@ -20,3 +20,12 @@ class UnexpectedFailure extends Failure {
 
   const UnexpectedFailure(this.message);
 }
+
+/// Generic — not specific to `alerts`. Any feature operating on an id that
+/// may not exist (e.g. `setpoints` later) can reuse this instead of a
+/// feature-specific not-found failure.
+class NotFoundFailure extends Failure {
+  final String message;
+
+  const NotFoundFailure(this.message);
+}

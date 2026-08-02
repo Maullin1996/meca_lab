@@ -55,12 +55,12 @@ void main() {
 
   setUp(() async {
     historyRepository = MockSensorHistoryRepository();
-    when(() => historyRepository.watchSensorHistory('sensor-temp')).thenAnswer(
-      (_) => Stream.value(Right(readingsFor('sensor-temp'))),
-    );
-    when(() => historyRepository.watchSensorHistory('sensor-presion')).thenAnswer(
-      (_) => Stream.value(Right(readingsFor('sensor-presion'))),
-    );
+    when(
+      () => historyRepository.watchSensorHistory('sensor-temp'),
+    ).thenAnswer((_) => Stream.value(Right(readingsFor('sensor-temp'))));
+    when(
+      () => historyRepository.watchSensorHistory('sensor-presion'),
+    ).thenAnswer((_) => Stream.value(Right(readingsFor('sensor-presion'))));
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );
@@ -75,7 +75,9 @@ void main() {
       ],
       child: AppThemeProvider(
         child: MaterialApp(
-          home: Scaffold(body: DeviceCard(device: device, onTap: () {})),
+          home: Scaffold(
+            body: DeviceCard(device: device, onTap: () {}),
+          ),
         ),
       ),
     );

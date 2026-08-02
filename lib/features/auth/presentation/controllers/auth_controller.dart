@@ -116,6 +116,7 @@ class AuthController extends _$AuthController {
     return switch (failure) {
       InvalidCredentialsFailure() => 'Email o contraseña incorrectos.',
       NoSessionFailure() => 'No hay una sesión activa.',
+      NotFoundFailure(:final message) => message,
       UnexpectedFailure(:final message) =>
         'Ocurrió un error inesperado: $message',
     };

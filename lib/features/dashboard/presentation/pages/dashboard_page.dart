@@ -25,8 +25,9 @@ class DashboardPage extends ConsumerWidget {
     final state = dashboardState.value;
 
     final gridType = dashboardState.when(
-      data: (value) =>
-          value.filteredDevices.isEmpty ? GridViewType.empty : GridViewType.list,
+      data: (value) => value.filteredDevices.isEmpty
+          ? GridViewType.empty
+          : GridViewType.list,
       loading: () => GridViewType.loading,
       error: (error, stackTrace) => GridViewType.error,
     );
@@ -47,6 +48,10 @@ class DashboardPage extends ConsumerWidget {
       context.push(AppRoutes.deviceDetailPath(device.id));
     }
 
+    void handleAlertsTap() {
+      context.push(AppRoutes.alerts);
+    }
+
     final viewData = DashboardViewData(
       devices: state?.filteredDevices ?? const [],
       gridType: gridType,
@@ -58,6 +63,7 @@ class DashboardPage extends ConsumerWidget {
       onDeviceTap: handleDeviceTap,
       onRetry: handleRetry,
       onLogout: handleLogout,
+      onAlertsTap: handleAlertsTap,
     );
 
     return LayoutBuilder(

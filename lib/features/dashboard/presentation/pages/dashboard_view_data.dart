@@ -17,6 +17,7 @@ class DashboardViewData {
   final ValueChanged<Device> onDeviceTap;
   final VoidCallback onRetry;
   final VoidCallback onLogout;
+  final VoidCallback onAlertsTap;
 
   const DashboardViewData({
     required this.devices,
@@ -29,5 +30,6 @@ class DashboardViewData {
     required this.onDeviceTap,
     required this.onRetry,
     required this.onLogout,
+    required this.onAlertsTap,
   });
 }

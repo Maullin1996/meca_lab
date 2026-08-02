@@ -9,6 +9,9 @@ import 'package:fpdart/fpdart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:meca_lab/core/error/failures.dart';
 import 'package:meca_lab/core/router/app_router.dart';
+import 'package:meca_lab/features/alerts/data/repositories/mock_alert_repository_impl.dart';
+import 'package:meca_lab/features/alerts/domain/repositories/alert_repository.dart';
+import 'package:meca_lab/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_mobile_view.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_web_view.dart';
@@ -29,6 +32,8 @@ class MockDeviceRepository extends Mock implements DeviceRepository {}
 class MockSensorHistoryRepository extends Mock
     implements SensorHistoryRepository {}
 
+class MockAlertRepository extends Mock implements AlertRepository {}
+
 void main() {
   // device_detail's SensorHistoryDetailChart (reached by tapping a card)
   // calls getHistoryForRange(sensorId, range) — mocktail's any() needs a
@@ -39,6 +44,7 @@ void main() {
 
   late MockDeviceRepository repository;
   late MockSensorHistoryRepository historyRepository;
+  late MockAlertRepository alertRepository;
 
   const mobileSize = Size(390, 844);
   const webSize = Size(1280, 800);
@@ -72,6 +78,7 @@ void main() {
   setUp(() async {
     repository = MockDeviceRepository();
     historyRepository = MockSensorHistoryRepository();
+    alertRepository = MockAlertRepository();
     when(
       () => historyRepository.watchSensorHistory(any()),
     ).thenAnswer((_) => const Stream.empty());
@@ -99,6 +106,10 @@ void main() {
           builder: (context, state) =>
               DeviceDetailPage(deviceId: state.pathParameters['id']!),
         ),
+        GoRoute(
+          path: AppRoutes.alerts,
+          builder: (context, state) => const AlertsPage(),
+        ),
       ],
     );
 
@@ -108,10 +119,9 @@ void main() {
         sensorHistoryRepositoryImplProvider.overrideWithValue(
           historyRepository,
         ),
+        alertRepositoryImplProvider.overrideWithValue(alertRepository),
       ],
-      child: AppThemeProvider(
-        child: MaterialApp.router(routerConfig: router),
-      ),
+      child: AppThemeProvider(child: MaterialApp.router(routerConfig: router)),
     );
   }
 
@@ -157,9 +167,7 @@ void main() {
   ) async {
     final controller = StreamController<Either<Failure, List<Device>>>();
     addTearDown(controller.close);
-    when(
-      () => repository.watchDevices(),
-    ).thenAnswer((_) => controller.stream);
+    when(() => repository.watchDevices()).thenAnswer((_) => controller.stream);
 
     await setSurfaceSize(tester, mobileSize);
     await tester.pumpWidget(buildApp());
@@ -170,8 +178,16 @@ void main() {
 
   testWidgets('con datos muestra una card por dispositivo', (tester) async {
     final devices = [
-      buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
-      buildDevice(id: 'dev-2', name: 'Motor Backup', status: DeviceStatus.offline),
+      buildDevice(
+        id: 'dev-1',
+        name: 'Compresor Norte',
+        status: DeviceStatus.online,
+      ),
+      buildDevice(
+        id: 'dev-2',
+        name: 'Motor Backup',
+        status: DeviceStatus.offline,
+      ),
     ];
     when(
       () => repository.watchDevices(),
@@ -190,8 +206,16 @@ void main() {
     tester,
   ) async {
     final devices = [
-      buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
-      buildDevice(id: 'dev-2', name: 'Motor Backup', status: DeviceStatus.offline),
+      buildDevice(
+        id: 'dev-1',
+        name: 'Compresor Norte',
+        status: DeviceStatus.online,
+      ),
+      buildDevice(
+        id: 'dev-2',
+        name: 'Motor Backup',
+        status: DeviceStatus.offline,
+      ),
     ];
     when(
       () => repository.watchDevices(),
@@ -213,8 +237,16 @@ void main() {
     'cada sensor con historial muestra su mini-gráfico, y el del dispositivo offline sale apagado',
     (tester) async {
       final devices = [
-        buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
-        buildDevice(id: 'dev-2', name: 'Motor Backup', status: DeviceStatus.offline),
+        buildDevice(
+          id: 'dev-1',
+          name: 'Compresor Norte',
+          status: DeviceStatus.online,
+        ),
+        buildDevice(
+          id: 'dev-2',
+          name: 'Motor Backup',
+          status: DeviceStatus.offline,
+        ),
       ];
       when(
         () => repository.watchDevices(),
@@ -245,8 +277,12 @@ void main() {
 
       expect(find.byType(LineChart), findsNWidgets(2));
 
-      final onlineChart = tester.widget<LineChart>(find.byType(LineChart).at(0));
-      final offlineChart = tester.widget<LineChart>(find.byType(LineChart).at(1));
+      final onlineChart = tester.widget<LineChart>(
+        find.byType(LineChart).at(0),
+      );
+      final offlineChart = tester.widget<LineChart>(
+        find.byType(LineChart).at(1),
+      );
       final colors = AppColors.of(tester.element(find.byType(LineChart).first));
 
       expect(onlineChart.data.lineBarsData.first.color, colors.primary);
@@ -256,9 +292,9 @@ void main() {
   );
 
   testWidgets('estado de error si el repositorio falla', (tester) async {
-    when(() => repository.watchDevices()).thenAnswer(
-      (_) => Stream.value(const Left(UnexpectedFailure('boom'))),
-    );
+    when(
+      () => repository.watchDevices(),
+    ).thenAnswer((_) => Stream.value(const Left(UnexpectedFailure('boom'))));
 
     await setSurfaceSize(tester, mobileSize);
     await tester.pumpWidget(buildApp());
@@ -275,7 +311,11 @@ void main() {
     tester,
   ) async {
     final devices = [
-      buildDevice(id: 'dev-1', name: 'Compresor Norte', status: DeviceStatus.online),
+      buildDevice(
+        id: 'dev-1',
+        name: 'Compresor Norte',
+        status: DeviceStatus.online,
+      ),
     ];
     when(
       () => repository.watchDevices(),
@@ -297,5 +337,24 @@ void main() {
     expect(find.byType(DashboardPage), findsNothing);
     expect(find.byType(DeviceDetailPage), findsOneWidget);
     expect(find.text('Compresor Norte'), findsOneWidget);
+  });
+
+  testWidgets('tocar el botón de alertas navega a /alerts', (tester) async {
+    when(
+      () => repository.watchDevices(),
+    ).thenAnswer((_) => Stream.value(const Right(<Device>[])));
+    when(
+      () => alertRepository.getAlerts(),
+    ).thenAnswer((_) async => const Right([]));
+
+    await setSurfaceSize(tester, mobileSize);
+    await tester.pumpWidget(buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('alerts-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DashboardPage), findsNothing);
+    expect(find.byType(AlertsPage), findsOneWidget);
   });
 }
