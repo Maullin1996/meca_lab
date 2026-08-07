@@ -71,8 +71,10 @@ repositorio que usa más de una feature: `Tenant`, `Site`, `Device`, `Sensor`, m
 `SensorReading` y `SensorHistoryRepository` empezaron exclusivos de `device_detail` y se
 **promovieron** a `shared/domain` cuando `dashboard` los necesitó también (sparklines en las cards)
 — ejemplo real de la regla del segundo consumidor operando como debía, no una excepción a ella.
-`Alert`, `Setpoint` y `User` siguen siendo exclusivos de su feature — esperan su propio segundo
-consumidor real, si llega a pasar.
+`Alert` empezó exclusivo de `features/alerts` y se **promovió** a `shared/domain` cuando
+`device_detail` lo necesitó para su sección de "alertas recientes del device" — mismo patrón que
+`SensorReading`/`SensorHistoryRepository` un poco más arriba. `Setpoint` y `User` siguen siendo
+exclusivos de su feature, esperando su propio segundo consumidor real.
 
 Los **casos de uso** normalmente viven dentro de la `domain/` de cada feature aunque operen sobre
 entidades compartidas, porque encapsulan una regla de negocio específica de esa pantalla (ej.
