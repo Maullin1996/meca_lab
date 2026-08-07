@@ -56,13 +56,14 @@ proyecto, es candidata a subir a `atomic_design` en su lugar (con confirmación 
 ya se estableció). No crees `lib/shared/widgets/` vacío de antemano — se crea cuando el primer
 widget realmente sube ahí.
 
-Dos casos reales ya pasaron por esto (no son hipotéticos, son la referencia a seguir):
+Tres casos reales ya pasaron por esto (no son hipotéticos, son la referencia a seguir):
 
 - **`DeviceStatusBadge`** nació en `dashboard/presentation/widgets/` (usado por `DeviceCard`) y
   subió a `shared/widgets/` cuando `device_detail` lo necesitó para su header.
 - **`SensorHistoryChart`** nació en `device_detail/presentation/widgets/` (como `SensorSparkline`,
   sobre un `CustomPainter` propio) y subió a `shared/widgets/` — ya reescrito sobre `fl_chart` — al
   agregarle mini-gráficos a las cards del dashboard.
+- **`AlertSeverityBadge`** nació en `features/alerts/presentation/widgets/` y subió a `shared/widgets/` cuando `device_detail` lo necesitó para su sección de alertas recientes.
 
 **`lib/shared/domain/`** — mismo espíritu que `shared/widgets/`, pero para entidades y contratos de
 repositorio que usa más de una feature: `Tenant`, `Site`, `Device`, `Sensor`, más la interfaz
