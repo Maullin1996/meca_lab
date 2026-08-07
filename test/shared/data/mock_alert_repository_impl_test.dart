@@ -1,9 +1,9 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/alerts/data/repositories/mock_alert_repository_impl.dart';
-import 'package:meca_lab/features/alerts/domain/entities/alert.dart';
 import 'package:meca_lab/shared/data/datasources/mock_device_data_source.dart';
+import 'package:meca_lab/shared/data/repositories/mock_alert_repository_impl.dart';
+import 'package:meca_lab/shared/domain/entities/alert.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:mocktail/mocktail.dart';
 

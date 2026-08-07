@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meca_lab/features/alerts/data/models/alert_model.dart';
-import 'package:meca_lab/features/alerts/domain/entities/alert.dart';
+import 'package:meca_lab/shared/data/models/alert_model.dart';
+import 'package:meca_lab/shared/domain/entities/alert.dart';
 
 void main() {
   final model = AlertModel(

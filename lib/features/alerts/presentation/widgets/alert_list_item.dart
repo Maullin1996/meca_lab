@@ -1,8 +1,8 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/alert.dart';
-import 'alert_severity_badge.dart';
+import '../../../../shared/domain/entities/alert.dart';
+import '../../../../shared/widgets/alert_severity_badge.dart';
 
 class AlertListItem extends StatelessWidget {
   final Alert alert;

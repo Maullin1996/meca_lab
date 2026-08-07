@@ -1,11 +1,11 @@
 import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/alert.dart';
+import '../domain/entities/alert.dart';
 
-/// Exclusive to `alerts` for now — same dot+label pattern as
-/// `DeviceStatusBadge` (`shared/widgets/`), but stays feature-local until a
-/// second feature actually needs it (second-consumer rule).
+/// Promoted to `shared/widgets/` when `device_detail` became its second
+/// real consumer (see `reference/architecture.md` — same pattern as
+/// `DeviceStatusBadge`).
 class AlertSeverityBadge extends StatelessWidget {
   final AlertSeverity severity;
 

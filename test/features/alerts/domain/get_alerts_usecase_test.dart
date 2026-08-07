@@ -1,9 +1,9 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/alerts/domain/entities/alert.dart';
-import 'package:meca_lab/features/alerts/domain/repositories/alert_repository.dart';
 import 'package:meca_lab/features/alerts/domain/usecases/get_alerts_usecase.dart';
+import 'package:meca_lab/shared/domain/entities/alert.dart';
+import 'package:meca_lab/shared/domain/repositories/alert_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAlertRepository extends Mock implements AlertRepository {}

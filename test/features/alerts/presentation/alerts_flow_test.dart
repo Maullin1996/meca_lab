@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:meca_lab/core/error/failures.dart';
-import 'package:meca_lab/features/alerts/data/repositories/mock_alert_repository_impl.dart';
-import 'package:meca_lab/features/alerts/domain/entities/alert.dart';
-import 'package:meca_lab/features/alerts/domain/repositories/alert_repository.dart';
 import 'package:meca_lab/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:meca_lab/features/alerts/presentation/widgets/alert_list_item.dart';
+import 'package:meca_lab/shared/data/repositories/mock_alert_repository_impl.dart';
+import 'package:meca_lab/shared/domain/entities/alert.dart';
+import 'package:meca_lab/shared/domain/repositories/alert_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAlertRepository extends Mock implements AlertRepository {}

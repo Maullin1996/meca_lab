@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../data/repositories/mock_alert_repository_impl.dart';
-import '../../domain/entities/alert.dart';
+import '../../../../shared/data/repositories/mock_alert_repository_impl.dart';
+import '../../../../shared/domain/entities/alert.dart';
 import '../../domain/usecases/acknowledge_alert_usecase.dart';
 import '../../domain/usecases/get_alerts_usecase.dart';
 

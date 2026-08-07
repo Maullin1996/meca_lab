@@ -2,7 +2,7 @@ import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/alert.dart';
+import '../../../../shared/domain/entities/alert.dart';
 import '../controllers/alerts_controller.dart';
 import '../widgets/alert_list_item.dart';
 

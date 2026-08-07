@@ -10,13 +10,15 @@ import 'package:meca_lab/core/error/failures.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_mobile_view.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_web_view.dart';
-import 'package:meca_lab/features/device_detail/presentation/widgets/recent_alerts_placeholder.dart';
 import 'package:meca_lab/features/device_detail/presentation/widgets/sensor_detail_card.dart';
 import 'package:meca_lab/shared/data/repositories/device_repository_impl.dart';
+import 'package:meca_lab/shared/data/repositories/mock_alert_repository_impl.dart';
 import 'package:meca_lab/shared/data/repositories/sensor_history_repository_impl.dart';
+import 'package:meca_lab/shared/domain/entities/alert.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
 import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
+import 'package:meca_lab/shared/domain/repositories/alert_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
 import 'package:mocktail/mocktail.dart';
@@ -25,6 +27,8 @@ class MockDeviceRepository extends Mock implements DeviceRepository {}
 
 class MockSensorHistoryRepository extends Mock
     implements SensorHistoryRepository {}
+
+class MockAlertRepository extends Mock implements AlertRepository {}
 
 void main() {
   // SensorHistoryDetailChart calls getHistoryForRange(sensorId, range) —
@@ -36,6 +40,7 @@ void main() {
 
   late MockDeviceRepository deviceRepository;
   late MockSensorHistoryRepository historyRepository;
+  late MockAlertRepository alertRepository;
 
   const mobileSize = Size(390, 844);
   const webSize = Size(1280, 800);
@@ -77,12 +82,16 @@ void main() {
   setUp(() async {
     deviceRepository = MockDeviceRepository();
     historyRepository = MockSensorHistoryRepository();
+    alertRepository = MockAlertRepository();
     when(
       () => historyRepository.watchSensorHistory(any()),
     ).thenAnswer((_) => const Stream.empty());
     when(
       () => historyRepository.getHistoryForRange(any(), any()),
     ).thenAnswer((_) async => const Right([]));
+    when(
+      () => alertRepository.getAlerts(),
+    ).thenAnswer((_) async => const Right(<Alert>[]));
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );
@@ -95,6 +104,7 @@ void main() {
         sensorHistoryRepositoryImplProvider.overrideWithValue(
           historyRepository,
         ),
+        alertRepositoryImplProvider.overrideWithValue(alertRepository),
       ],
       child: const AppThemeProvider(
         child: MaterialApp(home: DeviceDetailPage(deviceId: 'dev-1')),
@@ -176,14 +186,11 @@ void main() {
     expect(find.byType(SensorDetailCard), findsNWidgets(2));
 
     // Each SensorDetailCard is tall enough now (full chart with axes) that
-    // RecentAlertsPlaceholder sits past the ListView's default viewport +
+    // DeviceRecentAlertsSection sits past the ListView's default viewport +
     // cache extent — it exists in the list but isn't mounted until scrolled
     // into view.
-    await tester.scrollUntilVisible(
-      find.byType(RecentAlertsPlaceholder),
-      300,
-    );
-    expect(find.text('Alertas — próximamente'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Alertas recientes'), 300);
+    expect(find.text('Sin alertas activas'), findsOneWidget);
   });
 
   testWidgets('estado de error muestra el mensaje de reintento', (

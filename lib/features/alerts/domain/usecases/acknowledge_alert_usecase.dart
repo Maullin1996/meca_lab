@@ -1,8 +1,8 @@
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/error/failures.dart';
-import '../entities/alert.dart';
-import '../repositories/alert_repository.dart';
+import '../../../../shared/domain/entities/alert.dart';
+import '../../../../shared/domain/repositories/alert_repository.dart';
 
 class AcknowledgeAlertUseCase {
   final AlertRepository repository;

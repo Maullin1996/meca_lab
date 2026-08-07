@@ -1,10 +1,10 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/error/failures.dart';
-import '../../../../shared/data/datasources/mock_device_data_source.dart';
-import '../../../../shared/domain/entities/device.dart';
+import '../../../core/error/failures.dart';
+import '../datasources/mock_device_data_source.dart';
 import '../../domain/entities/alert.dart';
+import '../../domain/entities/device.dart';
 import '../../domain/repositories/alert_repository.dart';
 
 part 'mock_alert_repository_impl.g.dart';
