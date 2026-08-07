@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../../shared/domain/entities/device.dart';
 import '../../domain/entities/device_detail.dart';
 import '../widgets/device_detail_header.dart';
-import '../widgets/recent_alerts_placeholder.dart';
 import '../widgets/sensor_detail_card.dart';
 import 'device_detail_view_data.dart';
 
@@ -57,8 +56,6 @@ class DeviceDetailMobileView extends StatelessWidget {
               isLive: deviceDetail.device.status != DeviceStatus.offline,
             ),
           ),
-        // SizedBox(height: tokens.spacing.medium),
-        // const RecentAlertsPlaceholder(),
       ],
     );
   }
