@@ -11,6 +11,7 @@ import 'package:meca_lab/features/auth/domain/repositories/auth_repository.dart'
 import 'package:meca_lab/features/auth/presentation/pages/login_mobile_view.dart';
 import 'package:meca_lab/features/auth/presentation/pages/login_web_view.dart';
 import 'package:meca_lab/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:meca_lab/shared/domain/entities/user_role.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}

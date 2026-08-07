@@ -4,6 +4,7 @@ import 'package:meca_lab/core/error/failures.dart';
 import 'package:meca_lab/features/auth/domain/entities/user.dart';
 import 'package:meca_lab/features/auth/domain/repositories/auth_repository.dart';
 import 'package:meca_lab/features/auth/domain/usecases/get_current_session_usecase.dart';
+import 'package:meca_lab/shared/domain/entities/user_role.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}

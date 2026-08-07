@@ -6,6 +6,7 @@ import 'package:meca_lab/features/auth/data/datasources/auth_mock_data_source.da
 import 'package:meca_lab/features/auth/data/models/user_model.dart';
 import 'package:meca_lab/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:meca_lab/features/auth/domain/entities/user.dart';
+import 'package:meca_lab/shared/domain/entities/user_role.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockAuthMockDataSource extends Mock implements AuthMockDataSource {}

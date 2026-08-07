@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meca_lab/core/services/local_storage_service.dart';
 import 'package:meca_lab/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:meca_lab/features/auth/data/models/user_model.dart';
-import 'package:meca_lab/features/auth/domain/entities/user.dart';
+import 'package:meca_lab/shared/domain/entities/user_role.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

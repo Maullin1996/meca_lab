@@ -1,4 +1,4 @@
-enum UserRole { operador, administrador }
+import '../../../../shared/domain/entities/user_role.dart';
 
 class User {
   final String id;

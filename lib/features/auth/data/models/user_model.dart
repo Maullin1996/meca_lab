@@ -1,3 +1,4 @@
+import '../../../../shared/domain/entities/user_role.dart';
 import '../../domain/entities/user.dart';
 
 class UserModel {

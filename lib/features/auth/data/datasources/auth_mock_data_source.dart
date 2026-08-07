@@ -1,4 +1,4 @@
-import '../../domain/entities/user.dart';
+import '../../../../shared/domain/entities/user_role.dart';
 import '../models/user_model.dart';
 
 class _MockCredential {
