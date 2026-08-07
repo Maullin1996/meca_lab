@@ -108,6 +108,7 @@ class AlertsController extends _$AlertsController {
         'No pudimos encontrar esa alerta. Es posible que ya no exista.',
       InvalidCredentialsFailure() => 'Email o contraseña incorrectos.',
       NoSessionFailure() => 'No hay una sesión activa.',
+      UnauthorizedFailure() => 'No tienes permisos para realizar esta acción.',
       UnexpectedFailure(:final message) =>
         'Ocurrió un error inesperado: $message',
     };

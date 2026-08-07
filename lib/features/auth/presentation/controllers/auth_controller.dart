@@ -81,9 +81,10 @@ class AuthController extends _$AuthController {
     final current = state.value ?? const AuthSessionState.unauthenticated();
     state = AsyncValue.data(current.copyWithSubmitting(true));
 
-    final result = await LoginUseCase(
-      repository,
-    )(email: email, password: password);
+    final result = await LoginUseCase(repository)(
+      email: email,
+      password: password,
+    );
 
     state = AsyncValue.data(
       result.fold(
@@ -116,7 +117,9 @@ class AuthController extends _$AuthController {
     return switch (failure) {
       InvalidCredentialsFailure() => 'Email o contraseña incorrectos.',
       NoSessionFailure() => 'No hay una sesión activa.',
-      NotFoundFailure(:final message) => message,
+      NotFoundFailure() => 'No pudimos encontrar el elemento solicitado.',
+      UnauthorizedFailure() => 'No tienes permisos para realizar esta acción.',
+
       UnexpectedFailure(:final message) =>
         'Ocurrió un error inesperado: $message',
     };

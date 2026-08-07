@@ -29,3 +29,13 @@ class NotFoundFailure extends Failure {
 
   const NotFoundFailure(this.message);
 }
+
+/// Generic — not specific to `setpoints`. Any write that must check the
+/// requesting user's role (e.g. a future feature gating another mutation
+/// behind `UserRole.administrador`) reuses this instead of inventing its
+/// own feature-specific authorization failure.
+class UnauthorizedFailure extends Failure {
+  final String message;
+
+  const UnauthorizedFailure(this.message);
+}
