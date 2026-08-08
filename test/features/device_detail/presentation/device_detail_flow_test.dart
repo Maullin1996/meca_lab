@@ -1,12 +1,14 @@
 import 'dart:async';
 
-import 'package:atomic_design/atoms/app_tokens.dart';
-import 'package:atomic_design/config/atomic_design_config.dart';
+import 'package:atomic_design/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:meca_lab/core/error/failures.dart';
+import 'package:meca_lab/features/auth/data/providers/auth_repository_provider.dart';
+import 'package:meca_lab/features/auth/domain/entities/user.dart';
+import 'package:meca_lab/features/auth/domain/repositories/auth_repository.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_mobile_view.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_page.dart';
 import 'package:meca_lab/features/device_detail/presentation/pages/device_detail_web_view.dart';
@@ -18,6 +20,7 @@ import 'package:meca_lab/shared/domain/entities/alert.dart';
 import 'package:meca_lab/shared/domain/entities/device.dart';
 import 'package:meca_lab/shared/domain/entities/sensor.dart';
 import 'package:meca_lab/shared/domain/entities/sensor_history_range.dart';
+import 'package:meca_lab/shared/domain/entities/user_role.dart';
 import 'package:meca_lab/shared/domain/repositories/alert_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/device_repository.dart';
 import 'package:meca_lab/shared/domain/repositories/sensor_history_repository.dart';
@@ -30,6 +33,8 @@ class MockSensorHistoryRepository extends Mock
 
 class MockAlertRepository extends Mock implements AlertRepository {}
 
+class MockAuthRepository extends Mock implements AuthRepository {}
+
 void main() {
   // SensorHistoryDetailChart calls getHistoryForRange(sensorId, range) —
   // mocktail's any() needs a fallback value registered for any type beyond
@@ -41,6 +46,14 @@ void main() {
   late MockDeviceRepository deviceRepository;
   late MockSensorHistoryRepository historyRepository;
   late MockAlertRepository alertRepository;
+  late MockAuthRepository authRepository;
+
+  const operadorUser = User(
+    id: 'usr-1',
+    email: 'camila.rios@plantademo.meclab',
+    name: 'Camila Ríos',
+    role: UserRole.operador,
+  );
 
   const mobileSize = Size(390, 844);
   const webSize = Size(1280, 800);
@@ -83,6 +96,7 @@ void main() {
     deviceRepository = MockDeviceRepository();
     historyRepository = MockSensorHistoryRepository();
     alertRepository = MockAlertRepository();
+    authRepository = MockAuthRepository();
     when(
       () => historyRepository.watchSensorHistory(any()),
     ).thenAnswer((_) => const Stream.empty());
@@ -92,6 +106,12 @@ void main() {
     when(
       () => alertRepository.getAlerts(),
     ).thenAnswer((_) async => const Right(<Alert>[]));
+    // Defaults to `operador` (no edit icon) — existing tests in this file
+    // don't care about the icon either way; the dedicated group below
+    // overrides this per-test to check both roles.
+    when(
+      () => authRepository.getCurrentSession(),
+    ).thenAnswer((_) async => const Right(operadorUser));
     await AtomicDesignConfig.initializeFromAsset(
       'assets/config/app_config.json',
     );
@@ -105,6 +125,7 @@ void main() {
           historyRepository,
         ),
         alertRepositoryImplProvider.overrideWithValue(alertRepository),
+        authRepositoryProvider.overrideWithValue(authRepository),
       ],
       child: const AppThemeProvider(
         child: MaterialApp(home: DeviceDetailPage(deviceId: 'dev-1')),
@@ -209,5 +230,48 @@ void main() {
 
     expect(find.text('No pudimos cargar el dispositivo'), findsOneWidget);
     expect(find.byType(SensorDetailCard), findsNothing);
+  });
+
+  group('ícono de editar setpoint', () {
+    const adminUser = User(
+      id: 'usr-2',
+      email: 'andres.torres@plantademo.meclab',
+      name: 'Andrés Torres',
+      role: UserRole.administrador,
+    );
+
+    testWidgets('visible con rol administrador', (tester) async {
+      when(
+        () => authRepository.getCurrentSession(),
+      ).thenAnswer((_) async => const Right(adminUser));
+      when(
+        () => deviceRepository.watchDeviceById('dev-1'),
+      ).thenAnswer((_) => Stream.value(Right(device)));
+      when(
+        () => deviceRepository.getSensorsForDevice('dev-1'),
+      ).thenAnswer((_) async => Right(sensors));
+
+      await setSurfaceSize(tester, mobileSize);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(AppIcons.edit), findsNWidgets(sensors.length));
+    });
+
+    testWidgets('no visible con rol operador', (tester) async {
+      // setUp already stubs getCurrentSession with operadorUser.
+      when(
+        () => deviceRepository.watchDeviceById('dev-1'),
+      ).thenAnswer((_) => Stream.value(Right(device)));
+      when(
+        () => deviceRepository.getSensorsForDevice('dev-1'),
+      ).thenAnswer((_) async => Right(sensors));
+
+      await setSurfaceSize(tester, mobileSize);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(AppIcons.edit), findsNothing);
+    });
   });
 }
