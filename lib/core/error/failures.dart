@@ -39,3 +39,17 @@ class UnauthorizedFailure extends Failure {
 
   const UnauthorizedFailure(this.message);
 }
+
+/// Generic — not specific to `setpoints`. Distinct from [UnexpectedFailure]
+/// on purpose: an invalid `min >= max` write is an anticipated, recoverable
+/// bad-input case with an actionable message (like [NotFoundFailure] or
+/// [UnauthorizedFailure]), not something exceptional/unforeseen. Folding it
+/// into [UnexpectedFailure] would surface "Ocurrió un error inesperado: ..."
+/// to the user for what is really just a validation message — any future
+/// feature validating its own writes (e.g. a min/max range, a required
+/// field) can reuse this instead of inventing a feature-specific one.
+class ValidationFailure extends Failure {
+  final String message;
+
+  const ValidationFailure(this.message);
+}

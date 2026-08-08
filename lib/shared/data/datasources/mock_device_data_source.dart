@@ -131,6 +131,40 @@ class MockDeviceDataSource {
     return List.unmodifiable(points);
   }
 
+  /// Finds a single sensor by id across all devices, regardless of which
+  /// device it belongs to — unlike [sensorsForDevice], which needs the
+  /// `deviceId` upfront. `setpoints` only ever has a `sensorId` to work
+  /// with, so it needs this instead. Returns `null` for an unknown id.
+  Sensor? findSensorById(String sensorId) => _findSensor(sensorId);
+
+  /// The only writer of `Sensor.safeMin`/`safeMax` in the mock — backs
+  /// `setpoints`' `updateSetpoint`, which must mutate this shared source
+  /// directly rather than keep a parallel copy of the range. Returns
+  /// `false` for an unknown [sensorId] (nothing to mutate), leaving the
+  /// caller to decide how to surface that.
+  bool updateSensorSafeRange(String sensorId, double min, double max) {
+    final sensor = _findSensor(sensorId);
+    if (sensor == null) return false;
+
+    _sensorsByDeviceId[sensor.deviceId] = [
+      for (final s in _sensorsByDeviceId[sensor.deviceId]!)
+        if (s.id == sensorId)
+          Sensor(
+            id: s.id,
+            deviceId: s.deviceId,
+            name: s.name,
+            type: s.type,
+            unit: s.unit,
+            currentValue: s.currentValue,
+            safeMin: min,
+            safeMax: max,
+          )
+        else
+          s,
+    ];
+    return true;
+  }
+
   Sensor? _findSensor(String sensorId) {
     for (final sensors in _sensorsByDeviceId.values) {
       for (final sensor in sensors) {

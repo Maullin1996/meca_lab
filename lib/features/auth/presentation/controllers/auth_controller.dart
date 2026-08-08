@@ -119,6 +119,7 @@ class AuthController extends _$AuthController {
       NoSessionFailure() => 'No hay una sesión activa.',
       NotFoundFailure() => 'No pudimos encontrar el elemento solicitado.',
       UnauthorizedFailure() => 'No tienes permisos para realizar esta acción.',
+      ValidationFailure(:final message) => message,
 
       UnexpectedFailure(:final message) =>
         'Ocurrió un error inesperado: $message',

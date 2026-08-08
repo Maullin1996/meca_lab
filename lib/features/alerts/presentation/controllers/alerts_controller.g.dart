@@ -36,7 +36,7 @@ final class AlertsControllerProvider
   AlertsController create() => AlertsController();
 }
 
-String _$alertsControllerHash() => r'aee3b17e69204a54dc2777b62bb9d9732f014322';
+String _$alertsControllerHash() => r'ccac936cb4c74933fd1e5b54b536f52cf2144951';
 
 /// The only place in `presentation` that touches `Either`/`fpdart`.
 

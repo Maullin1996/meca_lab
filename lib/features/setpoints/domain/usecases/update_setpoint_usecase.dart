@@ -17,12 +17,14 @@ class UpdateSetpointUseCase {
     required double min,
     required double max,
     required UserRole requestingRole,
+    required String requestingUserDisplayName,
   }) {
     return repository.updateSetpoint(
       sensorId: sensorId,
       min: min,
       max: max,
       requestingRole: requestingRole,
+      requestingUserDisplayName: requestingUserDisplayName,
     );
   }
 }

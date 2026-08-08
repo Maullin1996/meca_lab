@@ -36,6 +36,7 @@ void main() {
         min: 15,
         max: 95,
         requestingRole: UserRole.administrador,
+        requestingUserDisplayName: 'Test User',
       ),
     ).thenAnswer((_) async => Right(updatedSetpoint));
 
@@ -44,6 +45,7 @@ void main() {
       min: 15,
       max: 95,
       requestingRole: UserRole.administrador,
+      requestingUserDisplayName: 'Test User',
     );
 
     expect(result, Right<Failure, Setpoint>(updatedSetpoint));
@@ -53,6 +55,7 @@ void main() {
         min: 15,
         max: 95,
         requestingRole: UserRole.administrador,
+        requestingUserDisplayName: 'Test User',
       ),
     ).called(1);
   });
@@ -64,6 +67,7 @@ void main() {
         min: 15,
         max: 95,
         requestingRole: UserRole.operador,
+        requestingUserDisplayName: 'Test User',
       ),
     ).thenAnswer(
       (_) async => const Left(
@@ -76,6 +80,7 @@ void main() {
       min: 15,
       max: 95,
       requestingRole: UserRole.operador,
+      requestingUserDisplayName: 'Test User',
     );
 
     expect(result, isA<Left<Failure, Setpoint>>());

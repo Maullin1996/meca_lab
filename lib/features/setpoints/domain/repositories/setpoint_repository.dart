@@ -16,11 +16,13 @@ abstract class SetpointRepository {
   Future<Either<Failure, Setpoint>> getSetpointForSensor(String sensorId);
 
   /// [requestingRole] must be [UserRole.administrador] — returns
-  /// [UnauthorizedFailure] otherwise.
+  /// [UnauthorizedFailure] otherwise. [requestingUserDisplayName] becomes
+  /// the returned [Setpoint.updatedBy] — the audit line's "quién".
   Future<Either<Failure, Setpoint>> updateSetpoint({
     required String sensorId,
     required double min,
     required double max,
     required UserRole requestingRole,
+    required String requestingUserDisplayName,
   });
 }

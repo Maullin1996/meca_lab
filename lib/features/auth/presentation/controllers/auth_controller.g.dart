@@ -42,7 +42,7 @@ final class AuthControllerProvider
   AuthController create() => AuthController();
 }
 
-String _$authControllerHash() => r'ed39eaf080c6c4d04399ce36f8ee105f8cee1cf1';
+String _$authControllerHash() => r'88dadc58b0c245292d839a12af531c8cef58ce9a';
 
 /// The only place in `presentation` that touches `Either`/`fpdart` — it
 /// `.fold()`s each use case result into [AuthSessionState] for widgets to
